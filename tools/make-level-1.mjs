@@ -4,6 +4,7 @@ import { Level } from './level-lib.mjs';
 
 const G = 16; // the normal floor row
 const WIDTH = 400;
+const HOOK = 5; // decoration tile
 const l = new Level({ width: WIDTH, height: 22, tileset: 'slaughterhouse' });
 
 // Run: nothing but corn to follow.
@@ -121,7 +122,8 @@ l.cornLine(x + 12, x + 18, G);
 l.chaseEnd(x + 80, G);
 l.goal(x + 90, G);
 
-// A roof over everything, with hooks left to the art.
+// A roof over everything, with meat hooks hanging from it.
 l.block(0, WIDTH - 1, 0, 2);
+for (let hook = 4; hook < WIDTH; hook += 9) l.set(hook, 3, HOOK);
 
 l.save('level-1');

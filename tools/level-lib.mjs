@@ -5,7 +5,8 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 
 const SIZE = 32;
 const [TOP, FILL, ONE_WAY, HAZARD] = [1, 2, 3, 4];
-const DECORATION = [5, 6, 7, 8];
+// Scattered on the ground. Crates, hay and cones are left out, as they look solid.
+const DECORATION = { slaughterhouse: [6, 8], farm: [5, 7, 8], road: [5, 7, 8] };
 
 export class Level {
   constructor({ width, height, tileset }) {
@@ -102,11 +103,12 @@ export class Level {
         if (this.get(x, y) === FILL && !solid(x, y - 1)) this.set(x, y, TOP);
       }
     }
+    const decoration = DECORATION[this.tileset];
     for (let y = 1; y < this.height; y++) {
       for (let x = 0; x < this.width; x++) {
         const pattern = (x * 7 + y * 13) % 11;
-        if (this.get(x, y) === TOP && !this.get(x, y - 1) && pattern < DECORATION.length) {
-          this.set(x, y - 1, DECORATION[pattern]);
+        if (this.get(x, y) === TOP && !this.get(x, y - 1) && pattern < decoration.length) {
+          this.set(x, y - 1, decoration[pattern]);
         }
       }
     }
