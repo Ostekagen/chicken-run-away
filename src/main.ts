@@ -7,6 +7,8 @@ import { LevelCompleteScene } from './scenes/LevelCompleteScene';
 import { MenuScene } from './scenes/MenuScene';
 import { VictoryScene } from './scenes/VictoryScene';
 
+const REFIT_DELAY_MS = 300;
+
 const game = new Phaser.Game({
   type: Phaser.AUTO,
   parent: 'game',
@@ -18,6 +20,19 @@ const game = new Phaser.Game({
   physics: { default: 'arcade', arcade: { gravity: { x: 0, y: CHICKEN.gravity } } },
   scene: [BootScene, MenuScene, GameScene, HudScene, LevelCompleteScene, VictoryScene],
 });
+
+// Phaser sizes the canvas before it reads the new screen size, so after rotating a phone the
+// canvas keeps its old size. Refit once now, and again for browsers that settle their layout late.
+const refit = () => {
+  game.scale.getParentBounds();
+  game.scale.refresh();
+};
+const refitAfterResize = () => {
+  refit();
+  setTimeout(refit, REFIT_DELAY_MS);
+};
+window.addEventListener('resize', refitAfterResize);
+window.addEventListener('orientationchange', refitAfterResize);
 
 if (import.meta.env.DEV) {
   (window as unknown as { phaserGame: Phaser.Game }).phaserGame = game;
