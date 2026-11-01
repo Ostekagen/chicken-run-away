@@ -6,6 +6,33 @@ export const TILE_SIZE = 32;
 export const TILE = { top: 1, fill: 2, oneWay: 3, hazard: 4 };
 export const TILESET_COLUMNS = 8;
 
+// Tuning values for power-ups. Speeds are pixels per second.
+export const POWERUPS = {
+  // Tint on the chicken while held, and the colour of placeholder pick-ups.
+  colors: {
+    'egg-throw': 0xff9eb5,
+    'flappy-wings': 0x7fd0ff,
+    'feather-armor': 0xc39bff,
+    'corn-rush': 0xffe14d,
+    'mighty-crow': 0xff8a4c,
+  },
+  // Holding one of these, a hit costs the power-up instead of a heart.
+  absorbsHit: ['egg-throw', 'flappy-wings', 'feather-armor'],
+  eggSpeed: 340,
+  eggArcSpeed: 160,
+  eggGravity: 400,
+  eggCooldownMs: 350,
+  eggLifeMs: 2000,
+  flapSpeed: 460,
+  glideFallSpeed: 70,
+  rushSpeed: 320,
+  rushMs: 6000,
+  crowRingRadius: 380,
+  crowRingMs: 500,
+};
+
+export type PowerUpKind = keyof typeof POWERUPS.colors;
+
 // Tuning values for how the chicken moves. Speeds are pixels per second.
 export const CHICKEN = {
   gravity: 1200,
