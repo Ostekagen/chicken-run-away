@@ -62,7 +62,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
   private createPips() {
     const { hitsToDefeat } = ENEMIES.boss;
     const firstX = this.x - ((hitsToDefeat - 1) * (PIP_SIZE + PIP_GAP)) / 2;
-    const y = this.y - this.displayHeight / 2 - 12;
+    const y = this.y - this.displayHeight / 2 - 18;
     return Array.from({ length: hitsToDefeat }, (_, i) =>
       this.scene.add.rectangle(firstX + i * (PIP_SIZE + PIP_GAP), y, PIP_SIZE, PIP_SIZE, PIP_COLOR).setDepth(3));
   }
@@ -185,13 +185,13 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
     this.nextThrowAt = 0;
   }
 
-  // Knocked up in a big arc, into the pig pen, upside down.
+  // Knocked up in a big arc, head first into the pig pen, legs sticking out.
   private defeat() {
     const { scene, pen } = this;
     const { knockedAwayMs, knockedArcHeight, finishDelayMs } = ENEMIES.boss;
     const startX = this.x;
     const startY = this.y;
-    const landY = pen.y - 8;
+    const landY = startY - 6;
     this.mode = 'defeated';
     this.stopDizzy?.();
     this.disableBody();
