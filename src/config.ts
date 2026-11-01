@@ -89,6 +89,7 @@ export const ENEMIES = {
       { throws: 5, fan: 3, gapMs: 850, tiredMs: 2600 },
     ],
     safeAfterStompMs: 1000,
+    eggProofMs: 2200,
     stompPushSpeed: 200,
     firstDropMs: 1500,
     dropEveryMs: 9000,

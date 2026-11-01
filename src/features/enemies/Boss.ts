@@ -28,6 +28,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
   private nextThrowAt = 0;
   private dazedUntil = 0;
   private safeUntil = 0;
+  private eggProofUntil = 0;
   private nextDropAt = 0;
   private dropSide = -1;
   private stopDizzy?: () => void;
@@ -68,7 +69,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
 
   private tick(time: number) {
     if (this.mode === 'defeated' || levelOver(this.scene)) return;
-    onEggHit(this.scene, this, () => this.takeDamage(time));
+    onEggHit(this.scene, this, () => this.hitByEgg(time));
     if (this.hits >= ENEMIES.boss.hitsToDefeat) return;
 
     const { chicken } = this.scene;
@@ -143,6 +144,13 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
     } else if (this.mode === 'attacking' && time.now >= this.safeUntil) {
       chicken.takeHit();
     }
+  }
+
+  // Eggs that land too soon after the last one just splat, so all three phases get played.
+  private hitByEgg(time: number) {
+    if (time < this.eggProofUntil) return;
+    this.eggProofUntil = time + ENEMIES.boss.eggProofMs;
+    this.takeDamage(time);
   }
 
   private takeDamage(time: number) {
