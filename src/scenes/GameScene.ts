@@ -1,12 +1,15 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../config';
+import { playMusic } from '../audio';
+import { TILE } from '../config';
+import { getLevelStats, saveStars } from '../features/collectibles';
 import { createLevelObjects, findLevelObject } from '../levelObjects';
-import { LEVELS } from '../levels';
 import { Chicken, ChickenInput } from '../objects/Chicken';
-import { TEXT } from '../text';
+import { touch } from '../touch';
 import '../features';
 
 const FALL_MARGIN = 64;
+const COMPLETE_DELAY_MS = 700;
+const BOSS_LEVEL = 'boss';
 
 export class GameScene extends Phaser.Scene {
   chicken!: Chicken;
@@ -22,6 +25,10 @@ export class GameScene extends Phaser.Scene {
     super('game');
   }
 
+  get isFinished() {
+    return this.finished;
+  }
+
   create(data: { level: string }) {
     this.finished = false;
     this.levelName = data.level;
@@ -32,6 +39,11 @@ export class GameScene extends Phaser.Scene {
     const ground = tileset && map.createLayer('ground', tileset);
     if (!ground) throw new Error(`Level ${data.level} needs a "ground" layer and a tileset`);
     this.ground = ground;
+
+    if (this.textures.exists(`bg-${tilesetName}`)) {
+      this.add.image(0, 0, `bg-${tilesetName}`).setOrigin(0).setScrollFactor(0).setDepth(-10);
+    }
+    playMusic(this, data.level === BOSS_LEVEL ? 'music-boss' : `music-${tilesetName}`);
 
     ground.setCollision([TILE.top, TILE.fill]);
     ground.forEachTile((tile) => {
@@ -64,6 +76,7 @@ export class GameScene extends Phaser.Scene {
     }) as typeof this.keys;
 
     createLevelObjects(this, map);
+    this.scene.launch('hud');
   }
 
   update(time: number) {
@@ -91,22 +104,19 @@ export class GameScene extends Phaser.Scene {
     if (this.finished) return;
     this.finished = true;
     this.chicken.setAcceleration(0, 0).setVelocity(0, 0);
-    this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, TEXT.levelComplete, {
-        fontFamily: 'monospace', fontSize: '32px', color: '#ffffff', stroke: '#1d2030', strokeThickness: 6,
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0);
-    const next = LEVELS[LEVELS.indexOf(this.levelName) + 1] ?? LEVELS[0];
-    this.time.delayedCall(1500, () => this.scene.start('game', { level: next }));
+    const stats = getLevelStats(this);
+    saveStars(this.levelName, stats.stars);
+    this.time.delayedCall(COMPLETE_DELAY_MS, () => {
+      this.scene.launch('level-complete', { level: this.levelName, stats });
+    });
   }
 
   private readInput(): ChickenInput {
     const { left, right, a, d, up, w, space } = this.keys;
     return {
-      left: left.isDown || a.isDown,
-      right: right.isDown || d.isDown,
-      jump: up.isDown || w.isDown || space.isDown,
+      left: left.isDown || a.isDown || touch.left,
+      right: right.isDown || d.isDown || touch.right,
+      jump: up.isDown || w.isDown || space.isDown || touch.jump,
     };
   }
 }

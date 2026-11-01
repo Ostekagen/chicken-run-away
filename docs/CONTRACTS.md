@@ -55,7 +55,15 @@ the ground.
 - `chicken.takeHit()`: every source of damage calls this. It handles the
   invulnerable time and hearts. Power-up rules that absorb a hit go inside it.
 - `chicken.hearts`: current hearts
+- `chicken.powerUp`: the held power-up or null. Set it with `setPowerUp(kind)`.
 - Events: `hit`, `defeated`
+
+## Power-up API
+
+- `getEggs(scene)`: the group of eggs in flight
+- `spawnPowerUp(scene, kind, x, feetY)`
+- `scene.events` emits `chicken:crow` when the chicken crows, and receives
+  `input:action` from the touch button, which throws an egg or crows.
 
 ## Tiles
 
