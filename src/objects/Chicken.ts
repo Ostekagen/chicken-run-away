@@ -10,6 +10,9 @@ export interface ChickenInput {
 export class Chicken extends Phaser.Physics.Arcade.Sprite {
   declare body: Phaser.Physics.Arcade.Body;
 
+  hearts = CHICKEN.maxHearts;
+
+  private invulnerableUntil = 0;
   private lastGroundedAt = -Infinity;
   private jumpPressedAt = -Infinity;
   private wasJumpHeld = false;
@@ -30,9 +33,21 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
     this.updateJump(input, onGround, time);
   }
 
+  // Everything that hurts the chicken goes through here.
+  takeHit() {
+    const now = this.scene.time.now;
+    if (now < this.invulnerableUntil) return;
+    this.invulnerableUntil = now + CHICKEN.invulnerableMs;
+    this.hearts -= 1;
+    this.emit('hit');
+    if (this.hearts <= 0) this.emit('defeated');
+  }
+
   respawn(x: number, y: number) {
     this.setPosition(x, y);
     this.body.reset(x, y);
+    this.hearts = CHICKEN.maxHearts;
+    this.invulnerableUntil = 0;
     this.isJumping = false;
     this.lastGroundedAt = -Infinity;
     this.jumpPressedAt = -Infinity;

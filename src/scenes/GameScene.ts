@@ -1,14 +1,19 @@
 import Phaser from 'phaser';
-import { GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH, TILE } from '../config';
+import { createLevelObjects, findLevelObject } from '../levelObjects';
+import { LEVELS } from '../levels';
 import { Chicken, ChickenInput } from '../objects/Chicken';
 import { TEXT } from '../text';
+import '../features';
 
-const TILE_ONE_WAY = 3;
 const FALL_MARGIN = 64;
 
 export class GameScene extends Phaser.Scene {
-  private chicken!: Chicken;
-  private spawn = new Phaser.Math.Vector2();
+  chicken!: Chicken;
+  ground!: Phaser.Tilemaps.TilemapLayer;
+
+  private levelName = '';
+  private checkpoint = new Phaser.Math.Vector2();
   private keys!: Record<'left' | 'right' | 'a' | 'd' | 'up' | 'w' | 'space', Phaser.Input.Keyboard.Key>;
   private levelHeight = 0;
   private finished = false;
@@ -19,22 +24,27 @@ export class GameScene extends Phaser.Scene {
 
   create(data: { level: string }) {
     this.finished = false;
+    this.levelName = data.level;
     const map = this.make.tilemap({ key: data.level });
-    const tileset = map.addTilesetImage('placeholder', 'tiles');
+    const tilesetName = map.tilesets[0].name;
+    const texture = `tiles-${tilesetName}`;
+    const tileset = map.addTilesetImage(tilesetName, this.textures.exists(texture) ? texture : 'tiles');
     const ground = tileset && map.createLayer('ground', tileset);
-    if (!ground) throw new Error(`Level ${data.level} needs a "ground" layer and "placeholder" tileset`);
+    if (!ground) throw new Error(`Level ${data.level} needs a "ground" layer and a tileset`);
+    this.ground = ground;
 
-    ground.setCollisionByExclusion([-1, TILE_ONE_WAY]);
+    ground.setCollision([TILE.top, TILE.fill]);
     ground.forEachTile((tile) => {
-      if (tile.index === TILE_ONE_WAY) tile.setCollision(false, false, true, false);
+      if (tile.index === TILE.oneWay) tile.setCollision(false, false, true, false);
     });
 
-    const spawnPoint = this.findObject(map, 'spawn');
-    this.spawn.set(spawnPoint.x ?? 0, (spawnPoint.y ?? 0) - 14);
-    this.chicken = new Chicken(this, this.spawn.x, this.spawn.y);
+    const spawn = findLevelObject(map, 'spawn');
+    this.setCheckpoint(spawn.x ?? 0, spawn.y ?? 0);
+    this.chicken = new Chicken(this, this.checkpoint.x, this.checkpoint.y);
+    this.chicken.on('defeated', () => this.catchChicken());
     this.physics.add.collider(this.chicken, ground);
 
-    const goalPoint = this.findObject(map, 'goal');
+    const goalPoint = findLevelObject(map, 'goal');
     const goal = this.physics.add.staticImage(goalPoint.x ?? 0, (goalPoint.y ?? 0) - 32, 'goal');
     this.physics.add.overlap(this.chicken, goal, () => this.finishLevel());
 
@@ -52,32 +62,32 @@ export class GameScene extends Phaser.Scene {
     this.keys = this.input.keyboard!.addKeys({
       left: K.LEFT, right: K.RIGHT, a: K.A, d: K.D, up: K.UP, w: K.W, space: K.SPACE,
     }) as typeof this.keys;
+
+    createLevelObjects(this, map);
   }
 
   update(time: number) {
     if (this.finished) return;
     this.chicken.move(this.readInput(), time);
-    if (this.chicken.y > this.levelHeight + FALL_MARGIN) {
-      this.chicken.respawn(this.spawn.x, this.spawn.y);
+    if (this.ground.getTileAtWorldXY(this.chicken.x, this.chicken.y)?.index === TILE.hazard) {
+      this.chicken.takeHit();
     }
+    if (this.chicken.y > this.levelHeight + FALL_MARGIN) this.catchChicken();
   }
 
-  private readInput(): ChickenInput {
-    const { left, right, a, d, up, w, space } = this.keys;
-    return {
-      left: left.isDown || a.isDown,
-      right: right.isDown || d.isDown,
-      jump: up.isDown || w.isDown || space.isDown,
-    };
+  // The chicken returns here when caught. Pass the point its feet should touch.
+  setCheckpoint(x: number, feetY: number) {
+    this.checkpoint.set(x, feetY - 14);
   }
 
-  private findObject(map: Phaser.Tilemaps.Tilemap, name: string) {
-    const object = map.findObject('objects', (o) => o.name === name);
-    if (!object) throw new Error(`Level is missing the "${name}" object`);
-    return object;
+  // Sends the chicken back to the latest checkpoint. Listen for
+  // 'chicken:respawned' on the scene's events to reset anything chasing it.
+  catchChicken() {
+    this.chicken.respawn(this.checkpoint.x, this.checkpoint.y);
+    this.events.emit('chicken:respawned');
   }
 
-  private finishLevel() {
+  finishLevel() {
     if (this.finished) return;
     this.finished = true;
     this.chicken.setAcceleration(0, 0).setVelocity(0, 0);
@@ -87,6 +97,16 @@ export class GameScene extends Phaser.Scene {
       })
       .setOrigin(0.5)
       .setScrollFactor(0);
-    this.time.delayedCall(1500, () => this.scene.restart());
+    const next = LEVELS[LEVELS.indexOf(this.levelName) + 1] ?? LEVELS[0];
+    this.time.delayedCall(1500, () => this.scene.start('game', { level: next }));
+  }
+
+  private readInput(): ChickenInput {
+    const { left, right, a, d, up, w, space } = this.keys;
+    return {
+      left: left.isDown || a.isDown,
+      right: right.isDown || d.isDown,
+      jump: up.isDown || w.isDown || space.isDown,
+    };
   }
 }

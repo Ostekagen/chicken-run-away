@@ -2,6 +2,10 @@ export const GAME_WIDTH = 640;
 export const GAME_HEIGHT = 360;
 export const TILE_SIZE = 32;
 
+// Every tileset is 8 tiles in one row, with these meanings. Tiles 5-8 are decoration.
+export const TILE = { top: 1, fill: 2, oneWay: 3, hazard: 4 };
+export const TILESET_COLUMNS = 8;
+
 // Tuning values for how the chicken moves. Speeds are pixels per second.
 export const CHICKEN = {
   gravity: 1200,
@@ -17,4 +21,7 @@ export const CHICKEN = {
   coyoteTimeMs: 90,
   // A jump pressed this long before landing still fires on landing.
   jumpBufferMs: 110,
+  maxHearts: 3,
+  // After a hit, further hits are ignored for this long.
+  invulnerableMs: 1200,
 };
