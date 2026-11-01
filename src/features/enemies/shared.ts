@@ -2,6 +2,11 @@ import Phaser from 'phaser';
 import { ENEMIES, TILE } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
 
+export { playSound } from '../../audio';
+
+const THROW_FRAME = 4;
+const THROW_POSE_MS = 300;
+
 type SceneListener = (...args: never[]) => void;
 
 // Adds a scene event listener for this run of the scene only.
@@ -22,13 +27,19 @@ export function perRun<T>(create: (scene: GameScene) => T) {
   };
 }
 
-export function playSound(scene: Phaser.Scene, key: string) {
-  if (scene.cache.audio.exists(key)) scene.sound.play(key);
+// Nothing should hurt the chicken once the level is won.
+export function levelOver(scene: GameScene) {
+  return scene.isFinished;
 }
 
-// GameScene has no public getter yet. Nothing should hurt the chicken once the level is won.
-export function levelOver(scene: GameScene) {
-  return scene['finished'];
+// Holds the butcher's throw pose briefly, then returns to running or standing.
+export function showThrow(sprite: Phaser.GameObjects.Sprite, nextAnimation?: string) {
+  sprite.stop().setFrame(THROW_FRAME);
+  sprite.scene.time.delayedCall(THROW_POSE_MS, () => {
+    if (!sprite.active) return;
+    if (nextAnimation) sprite.play(nextAnimation);
+    else sprite.setFrame(0);
+  });
 }
 
 export function isSolidTile(scene: GameScene, x: number, y: number) {

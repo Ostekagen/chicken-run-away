@@ -4,7 +4,7 @@ import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
 import { clearCleavers, throwCleaver } from './cleavers';
 import { dropEggThrow, onEggHit } from './powerupAdapter';
-import { isLanding, levelOver, listen, playSound, showDizzy } from './shared';
+import { isLanding, levelOver, listen, playSound, showDizzy, showThrow } from './shared';
 
 const BODY = { width: 28, height: 52, offsetX: 6, offsetY: 4 };
 const TIRED_LEAN_DEGREES = 8;
@@ -108,6 +108,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
     for (let i = 0; i < fan; i++) {
       const offset = (i - (fan - 1) / 2) * fanSpreadX;
       throwCleaver(this.scene, this.x, this.y - 30, chicken.x + offset, chicken.y, throwFlightMs);
+      showThrow(this);
     }
     this.throwsLeft -= 1;
     this.nextThrowAt = time + gapMs;

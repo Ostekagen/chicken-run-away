@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
+import { playSound } from '../audio';
 import { CHICKEN, POWERUPS, PowerUpKind } from '../config';
+
+const RUN_ANIMATION_MIN_SPEED = 10;
 
 export interface ChickenInput {
   left: boolean;
@@ -36,6 +39,7 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
     this.updateRun(input, onGround);
     this.updateJump(input, onGround, time);
     this.updateGlide(input, onGround);
+    this.updateAnimation(onGround);
   }
 
   // The chicken holds one power-up, so this replaces any other. Null removes it.
@@ -54,10 +58,11 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
     this.invulnerableUntil = now + CHICKEN.invulnerableMs;
     if (this.powerUp && POWERUPS.absorbsHit.includes(this.powerUp)) {
       this.setPowerUp(null);
-      this.blink();
     } else {
       this.hearts -= 1;
     }
+    this.blink();
+    playSound(this.scene, 'sfx-hit');
     this.emit('hit');
     if (this.hearts <= 0) this.emit('defeated');
   }
@@ -107,6 +112,7 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
       this.body.setVelocityY(-CHICKEN.jumpSpeed);
       this.isJumping = true;
       this.jumpPressedAt = -Infinity;
+      playSound(this.scene, 'sfx-jump');
     } else if (this.jumpPressedAt === time && !onGround && this.powerUp === 'flappy-wings' && !this.flapUsed) {
       this.body.setVelocityY(-POWERUPS.flapSpeed);
       this.isJumping = true;
@@ -126,5 +132,11 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
     if (gliding && this.body.velocity.y > POWERUPS.glideFallSpeed) {
       this.body.setVelocityY(POWERUPS.glideFallSpeed);
     }
+  }
+
+  private updateAnimation(onGround: boolean) {
+    if (!onGround) this.play(this.body.velocity.y < 0 ? 'chicken-jump' : 'chicken-fall', true);
+    else if (Math.abs(this.body.velocity.x) > RUN_ANIMATION_MIN_SPEED) this.play('chicken-run', true);
+    else this.play('chicken-idle', true);
   }
 }

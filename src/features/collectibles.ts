@@ -1,6 +1,7 @@
 // Corn, golden eggs and checkpoints: registers "corn", "golden-egg" and "checkpoint".
 import Phaser from 'phaser';
 import { ensureTexture } from '../art';
+import { playSound } from '../audio';
 import { CHICKEN } from '../config';
 import { registerLevelObject } from '../levelObjects';
 import type { GameScene } from '../scenes/GameScene';
@@ -26,7 +27,6 @@ interface LevelState {
 // Collected items are only forgotten when the scene restarts, so they stay
 // collected through a respawn at a checkpoint.
 const states = new WeakMap<GameScene, LevelState>();
-const scenesSavingStars = new WeakSet<GameScene>();
 
 function starsFor(eggs: number) {
   return 1 + Number(eggs >= 2) + Number(eggs >= 3);
@@ -38,25 +38,8 @@ function levelState(scene: GameScene) {
     state = { stats: { corn: 0, cornTotal: 0, eggs: 0, eggTotal: 0, stars: 1 } };
     states.set(scene, state);
     scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => states.delete(scene));
-    saveStarsWhenFinished(scene);
   }
   return state;
-}
-
-// GameScene has no finished event, so this wraps finishLevel on the scene itself.
-function saveStarsWhenFinished(scene: GameScene) {
-  if (scenesSavingStars.has(scene)) return;
-  scenesSavingStars.add(scene);
-  const finishLevel = scene.finishLevel.bind(scene);
-  scene.finishLevel = () => {
-    const level = (scene.sys.settings.data as { level: string }).level;
-    saveStars(level, getLevelStats(scene).stars);
-    finishLevel();
-  };
-}
-
-function playSound(scene: GameScene, key: string) {
-  if (scene.cache.audio.exists(key)) scene.sound.play(key);
 }
 
 function collectCorn(scene: GameScene, stats: LevelStats) {
@@ -133,7 +116,7 @@ export function getSavedStars(level: string) {
   return readStars()[level] ?? 0;
 }
 
-function saveStars(level: string, stars: number) {
+export function saveStars(level: string, stars: number) {
   const saved = readStars();
   if ((saved[level] ?? 0) >= stars) return;
   saved[level] = stars;

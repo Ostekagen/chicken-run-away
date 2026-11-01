@@ -1,6 +1,7 @@
 // Power-ups: registers the "powerup" level object.
 import Phaser from 'phaser';
 import { ensureTexture } from '../art';
+import { playSound } from '../audio';
 import { CHICKEN, POWERUPS, PowerUpKind } from '../config';
 import { objectProperty, registerLevelObject } from '../levelObjects';
 import type { GameScene } from '../scenes/GameScene';
@@ -50,20 +51,28 @@ function stateOf(scene: GameScene) {
   // Key events, because polling misses a tap shorter than a frame.
   const K = Phaser.Input.Keyboard.KeyCodes;
   let nextThrowAt = 0;
-  onKeys(scene, [K.X, K.J], () => {
+  const tryThrow = () => {
     if (scene.chicken.powerUp !== 'egg-throw' || scene.time.now < nextThrowAt) return;
     nextThrowAt = scene.time.now + POWERUPS.eggCooldownMs;
     throwEgg(scene, state.eggs);
-  });
-  onKeys(scene, [K.C, K.K], () => {
+  };
+  const tryCrow = () => {
     if (scene.chicken.powerUp === 'mighty-crow') crow(scene);
-  });
+  };
+  const useAction = () => {
+    tryThrow();
+    tryCrow();
+  };
+  onKeys(scene, [K.X, K.J], tryThrow);
+  onKeys(scene, [K.C, K.K], tryCrow);
+  scene.events.on('input:action', useAction);
 
   // A caught chicken gets its pick-ups back, so a level can't be left without one it needs.
   const restorePickUps = () => state.pickUps.forEach((pickUp) => pickUp.setVisible(true));
   scene.events.on('chicken:respawned', restorePickUps);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => {
     scene.events.off('chicken:respawned', restorePickUps);
+    scene.events.off('input:action', useAction);
     states.delete(scene);
   });
   return state;
@@ -99,8 +108,4 @@ function crow(scene: GameScene) {
     duration: POWERUPS.crowRingMs,
     onComplete: () => ring.destroy(),
   });
-}
-
-function playSound(scene: Phaser.Scene, key: string) {
-  if (scene.cache.audio.exists(key)) scene.sound.play(key);
 }

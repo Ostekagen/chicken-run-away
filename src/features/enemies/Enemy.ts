@@ -52,6 +52,7 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite implements Foe {
     this.body.setCollideWorldBounds(true);
     scene.physics.add.collider(this, scene.ground);
     scene.physics.add.overlap(scene.chicken, this, () => this.touch());
+    this.play(`${kind}-walk`);
   }
 
   tick(time: number) {
@@ -61,8 +62,10 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite implements Foe {
     }
     if (time < this.stunnedUntil) {
       this.setVelocityX(0);
+      this.anims.pause();
       return;
     }
+    this.anims.resume();
     if (this.kind === 'dog') this.dog(time);
     else if (this.kind === 'goose') this.goose(time);
     else if (this.kind === 'fox') this.fox(time);

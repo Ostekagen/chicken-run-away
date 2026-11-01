@@ -3,7 +3,7 @@ import { ensureTexture } from '../../art';
 import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
 import { clearCleavers, throwCleaver } from './cleavers';
-import { isSolidTile, levelOver, listen, perRun, showDizzy, surfaceBelow } from './shared';
+import { isSolidTile, levelOver, listen, perRun, showDizzy, showThrow, surfaceBelow } from './shared';
 
 type Rectangle = Phaser.Geom.Rectangle;
 
@@ -43,6 +43,7 @@ class ButcherChase {
   constructor(private readonly scene: GameScene) {
     const { color, width, height } = ENEMIES.butcher;
     this.butcher = scene.physics.add.sprite(0, 0, ensureTexture(scene, 'butcher', color, width, height));
+    this.butcher.play('butcher-run');
     this.body = this.butcher.body as Phaser.Physics.Arcade.Body;
     this.body.setSize(BODY.width, BODY.height).setOffset(BODY.offsetX, BODY.offsetY);
     this.butcher.disableBody(true, true);
@@ -183,6 +184,7 @@ class ButcherChase {
     this.nextThrowAt = time + throwEveryMs;
     const lead = (chicken.body.velocity.x * throwFlightMs * throwLead) / 1000;
     throwCleaver(this.scene, butcher.x, butcher.y - 16, chicken.x + lead, chicken.y, throwFlightMs);
+    showThrow(butcher, 'butcher-run');
   }
 
   // The nearest he may be kept, just out of sight behind the chicken.

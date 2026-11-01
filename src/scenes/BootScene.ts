@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { TILESET_COLUMNS, TILE_SIZE } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH, TILESET_COLUMNS, TILE_SIZE } from '../config';
 import { LEVELS } from '../levels';
 
 // Frame sizes match docs/CONTRACTS.md. A spritesheet keeps the plain key, so a sprite made
@@ -50,6 +50,10 @@ export class BootScene extends Phaser.Scene {
   }
 
   preload() {
+    const barWidth = GAME_WIDTH / 2;
+    const bar = this.add.rectangle((GAME_WIDTH - barWidth) / 2, GAME_HEIGHT / 2, 1, 12, 0xffe14d).setOrigin(0, 0.5);
+    this.load.on('progress', (progress: number) => { bar.width = Math.max(1, barWidth * progress); });
+
     for (const level of LEVELS) this.load.tilemapTiledJSON(level, `levels/${level}.json`);
     for (const [key, frameWidth, frameHeight] of SPRITESHEETS) {
       this.load.spritesheet(key, `assets/sprites/${key}.png`, { frameWidth, frameHeight });
@@ -64,6 +68,7 @@ export class BootScene extends Phaser.Scene {
 
   create() {
     this.drawTiles();
+    this.drawPigPen();
     for (const { key, texture, start, end, frameRate, loop } of ANIMATIONS) {
       this.anims.create({
         key,
@@ -72,7 +77,18 @@ export class BootScene extends Phaser.Scene {
         repeat: loop ? -1 : 0,
       });
     }
-    this.scene.start('game', { level: LEVELS[0] });
+    this.scene.start('menu');
+  }
+
+  private drawPigPen() {
+    const g = this.add.graphics();
+    g.fillStyle(0x6b4a2f).fillRect(0, 26, 120, 14); // mud
+    g.fillStyle(0x7c5836).fillEllipse(30, 28, 44, 8).fillEllipse(88, 30, 36, 6);
+    g.fillStyle(0xc99a5b).fillRect(0, 8, 120, 4).fillRect(0, 18, 120, 4); // rails
+    g.fillStyle(0xa87b45);
+    for (let x = 0; x <= 112; x += 28) g.fillRect(x, 2, 8, 30); // posts
+    g.generateTexture('pig-pen', 120, 40);
+    g.destroy();
   }
 
   private drawTiles() {

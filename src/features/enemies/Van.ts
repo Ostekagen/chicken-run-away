@@ -33,6 +33,7 @@ export class Van extends Phaser.Physics.Arcade.Sprite implements Foe {
     scene.add.existing(this);
     scene.physics.add.existing(this);
     this.body.setAllowGravity(false);
+    this.play('van-drive');
     this.park(0);
     scene.physics.add.overlap(scene.chicken, this, () => {
       if (this.scene.time.now >= this.stunnedUntil && !levelOver(this.scene)) this.scene.chicken.takeHit();
