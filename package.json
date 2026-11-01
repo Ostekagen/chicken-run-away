@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "make:test-level": "node tools/make-test-level.mjs"
+    "make:test-level": "node tools/make-test-level.mjs",
+    "check:levels": "node tools/check-levels.mjs"
   },
   "dependencies": {
     "phaser": "^3.90.0"
