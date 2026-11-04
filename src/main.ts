@@ -5,6 +5,7 @@ import { GameScene } from './scenes/GameScene';
 import { HudScene } from './scenes/HudScene';
 import { LevelCompleteScene } from './scenes/LevelCompleteScene';
 import { MenuScene } from './scenes/MenuScene';
+import { ShopScene } from './scenes/ShopScene';
 import { VictoryScene } from './scenes/VictoryScene';
 
 const REFIT_DELAY_MS = 300;
@@ -18,7 +19,7 @@ const game = new Phaser.Game({
   pixelArt: true,
   scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
   physics: { default: 'arcade', arcade: { gravity: { x: 0, y: CHICKEN.gravity } } },
-  scene: [BootScene, MenuScene, GameScene, HudScene, LevelCompleteScene, VictoryScene],
+  scene: [BootScene, MenuScene, GameScene, HudScene, LevelCompleteScene, VictoryScene, ShopScene],
 });
 
 // Phaser sizes the canvas before it reads the new screen size, so after rotating a phone the
