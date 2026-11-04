@@ -3,7 +3,6 @@ import Phaser from 'phaser';
 import { ensureTexture } from '../art';
 import { playSound } from '../audio';
 import { objectProperty, registerLevelObject } from '../levelObjects';
-import type { Chicken } from '../objects/Chicken';
 import type { GameScene } from '../scenes/GameScene';
 
 type TiledObject = Phaser.Types.Tilemaps.TiledObject;
@@ -15,45 +14,6 @@ const PLATFORM = { width: 96, height: 16, color: 0x8b5a2b };
 function listen(scene: GameScene, event: string, listener: (...args: never[]) => void) {
   scene.events.on(event, listener);
   scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(event, listener));
-}
-
-// The chicken only counts a jump as over once it stops rising, which never happens on
-// a lift going up or during a throw. Chicken has no public way to end a jump yet, so
-// this clears its flag directly.
-function endJump(chicken: Chicken) {
-  const jumpState = chicken as unknown as { isJumping?: boolean };
-  if ('isJumping' in jumpState) jumpState.isJumping = false;
-}
-
-// The chicken's body caps its vertical speed at its fall speed, which would clip a
-// throw. The cap is raised while one rises, and put back at the top, on landing or on
-// a respawn. One watcher per scene run, shared by all its awnings.
-const throwLimits = new WeakMap<GameScene, { normalLimit: number | null }>();
-
-function throwsOf(scene: GameScene) {
-  const state = throwLimits.get(scene);
-  if (state) return state;
-  const current = { normalLimit: null as number | null };
-  throwLimits.set(scene, current);
-  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => throwLimits.delete(scene));
-  const restore = () => {
-    if (current.normalLimit === null) return;
-    scene.chicken.body.setMaxVelocityY(current.normalLimit);
-    current.normalLimit = null;
-  };
-  listen(scene, Phaser.Scenes.Events.UPDATE, () => {
-    if (current.normalLimit !== null && scene.chicken.body.velocity.y >= 0) restore();
-  });
-  listen(scene, 'chicken:respawned', restore);
-  return current;
-}
-
-function throwChicken(scene: GameScene, power: number) {
-  const { body } = scene.chicken;
-  const state = throwsOf(scene);
-  state.normalLimit ??= body.maxVelocity.y;
-  body.setMaxVelocityY(Math.max(state.normalLimit, power));
-  body.setVelocityY(-power);
 }
 
 // An awning that throws the chicken up when it lands or steps on it. It is not
@@ -76,15 +36,11 @@ function addBounce(scene: GameScene, object: TiledObject) {
   };
 
   scene.physics.add.overlap(scene.chicken, awning, () => {
-    const { chicken } = scene;
-    if (chicken.body.velocity.y < 0) return;
-    throwChicken(scene, power);
-    // A throw is not a jump, so letting go of jump must not cut it short.
-    endJump(chicken);
+    if (scene.chicken.body.velocity.y < 0) return;
+    scene.chicken.launch(power);
     squash();
     playSound(scene, 'sfx-bounce');
   });
-  throwsOf(scene);
   listen(scene, Phaser.Scenes.Events.UPDATE, () => {
     if (releaseAt && scene.time.now >= releaseAt) {
       releaseAt = 0;
@@ -119,7 +75,7 @@ function addMovingPlatform(scene: GameScene, object: TiledObject) {
   body.friction.set(1, 0);
   // Standing on it counts as standing on the ground, even while it rises.
   scene.physics.add.collider(scene.chicken, platform, () => {
-    if (scene.chicken.body.touching.down) endJump(scene.chicken);
+    if (scene.chicken.body.touching.down) scene.chicken.endJump();
   });
 
   let startedAt = scene.time.now;

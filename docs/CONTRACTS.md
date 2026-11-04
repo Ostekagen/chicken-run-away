@@ -42,8 +42,9 @@ in the pull request.
 ## Moving levels
 
 A map property `scrollSpeed` (px/s) makes a moving level: the screen scrolls on
-its own and the chicken is kept inside its right edge. Falling behind the left
-edge counts as caught. After the start or a catch the screen waits 1 s, with the
+its own, and a chicken running past 70% of the screen pulls it along faster, so a
+jump is never cut off at the right edge. Falling behind the left edge counts as
+caught. After the start or a catch the screen waits 1 s, with the
 chicken 200 px from its left edge. A `scroll-speed` point object with a `speed`
 property changes the speed once the middle of the screen passes it.
 `scene.isAutoscroll` tells features which kind of level this is.
@@ -96,6 +97,9 @@ the ground.
   Extra Heart upgrade.
 - Use `crowStunMs()` from `src/upgrades.ts` for how long the crow stuns, since
   Longer Power-ups extends it.
+- `chicken.launch(speed)` throws it upward, for example from an awning. Letting go
+  of jump doesn't cut a throw short. `chicken.endJump()` lets it jump again while
+  still rising, for example from a lift.
 - `chicken.powerUp`: the held power-up or null. Set it with `setPowerUp(kind)`.
 - Events: `hit`, `defeated`
 

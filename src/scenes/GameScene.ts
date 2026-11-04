@@ -14,9 +14,9 @@ import '../features';
 
 const FALL_MARGIN = 64;
 const COMPLETE_DELAY_MS = 700;
-// In a moving level the chicken is kept this far inside the right edge,
-// and after being caught the screen starts with it this far from the left edge.
-const SCROLL_EDGE_MARGIN = 16;
+// In a moving level, a chicken past this share of the screen pulls it along faster,
+// and after being caught the screen starts with the chicken this far from its left edge.
+const SCROLL_PULL_SHARE = 0.7;
 const SCROLL_RESPAWN_LEAD = 200;
 // The screen waits this long after the start or a catch before it moves.
 const SCROLL_START_DELAY_MS = 1000;
@@ -188,10 +188,11 @@ export class GameScene extends Phaser.Scene {
     camera.scrollX = this.scrollPosition;
 
     const { body } = this.chicken;
-    const rightEdge = camera.scrollX + camera.width - SCROLL_EDGE_MARGIN;
-    if (body.right > rightEdge) {
-      body.x = rightEdge - body.width;
-      body.velocity.x = Math.min(0, body.velocity.x);
+    // A chicken running ahead pulls the screen along, so a jump is never stopped at the right edge.
+    const pullLine = this.scrollPosition + camera.width * SCROLL_PULL_SHARE;
+    if (body.right > pullLine) {
+      this.scrollPosition = Math.min(lastScrollX, this.scrollPosition + body.right - pullLine);
+      camera.scrollX = this.scrollPosition;
     }
     // Falling behind the left edge means the butcher's van catches the chicken.
     if (body.right < camera.scrollX) this.catchChicken();
