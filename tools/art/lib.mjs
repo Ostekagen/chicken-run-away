@@ -46,6 +46,28 @@ export class Canvas {
     return this;
   }
 
+  // Filled ellipse centred on (cx, cy). Half-pixel centres give even widths.
+  ellipse(cx, cy, rx, ry, color) {
+    for (let y = Math.floor(cy - ry); y <= Math.ceil(cy + ry); y++) {
+      for (let x = Math.floor(cx - rx); x <= Math.ceil(cx + rx); x++) {
+        const dx = (x - cx) / rx;
+        const dy = (y - cy) / ry;
+        if (dx * dx + dy * dy <= 1.0001) this.set(x, y, color);
+      }
+    }
+    return this;
+  }
+
+  // Thick line between two points, as a row of discs.
+  line(x0, y0, x1, y1, radius, color) {
+    const steps = Math.max(1, Math.ceil(Math.hypot(x1 - x0, y1 - y0) * 2));
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      this.ellipse(x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, radius, radius, color);
+    }
+    return this;
+  }
+
   // Draws a character grid. '_' erases, which lets a part cut into what is below it.
   stamp(grid, x = 0, y = 0, { flip = false } = {}) {
     const width = Math.max(...grid.map((row) => row.length));

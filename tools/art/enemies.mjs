@@ -373,3 +373,202 @@ function van(step) {
 }
 
 export const vanFrames = [van(0), van(1)];
+
+// ======================================================== Update 1: World 2 enemies
+
+// ---------------------------------------------------------------- pigeon 28x20
+// A plump city pigeon flapping along, with the green-purple sheen on its neck.
+const PIGEON_BODY = [
+  '...................AAAA.....',
+  '..................AAAAAA....',
+  '..................AAWKAAa...',
+  '..................AAKKAAMD..',
+  '.................GAAAAAa....',
+  '................VGVAAAa.....',
+  '.......aa......GVGVGAAa.....',
+  'aaaa.aaAAAAAAAAAAGVAAAAa....',
+  '.SaaAAAAAAAAAAAAAAAAAAAAa...',
+  'SSSaaAAAAAAAAAAAAAAAAAAa....',
+  '..SSaaAAAAAAAAAAAAAAAAa.....',
+  '......aaaaAAAAAAAAAaa.......',
+  '..........aaaaaaaaa.........',
+  '.............pp..pp.........',
+];
+
+const PIGEON_WING_UP = [
+  'ss..........',
+  'sMs.........',
+  'sMMs........',
+  '.sMMss......',
+  '.sMMMMss....',
+  '..sMDMMMss..',
+  '..sMMDMMMMss',
+  '...sMMMDMMMs',
+  '....sssssss.',
+];
+
+const PIGEON_WING_DOWN = [
+  'sssssssssss.',
+  '.sMMMDMMMDMs',
+  '..sMMMDMMMs.',
+  '...sMMMDMs..',
+  '....sMMMs...',
+  '.....sss....',
+];
+
+function pigeon(step) {
+  const frame = new Canvas(28, 20);
+  const bob = step ? 1 : 0;
+  frame.stamp(PIGEON_BODY, 0, 5 + bob);
+  frame.outline();
+  const wing = new Canvas(28, 20);
+  if (step === 0) wing.stamp(PIGEON_WING_UP, 7, 1);
+  else wing.stamp(PIGEON_WING_DOWN, 7, 12);
+  return frame.blit(wing.outline());
+}
+
+export const pigeonFrames = [pigeon(0), pigeon(1)];
+
+// ---------------------------------------------------------------- cat 32x24
+// A grey tabby alley cat. Frames: walk, walk, pounce.
+const CAT_BODY = [
+  '........................a....a..',
+  '.......................aPa..aPa.',
+  '.......................aAAaaAAa.',
+  '..aa..................AAAAAAAAAA',
+  '.aAa..................AALKAAALKA',
+  '.aA...................AAAAAPAAAA',
+  '.aA...................AWWWWWWWA.',
+  '.aA....aaaaaaaaaaaaaaAAWWKWKWWA.',
+  '..aA.aAAADAAADAAADAAAAAAWWWWWA..',
+  '...aAAAADAAADAAADAAAAAAAAWWWW...',
+  '....AAAAAAAAAAAAAAAAAAAAAWWW....',
+  '....aAAAAAAAAAAAAAAAAAAAAAW.....',
+  '.....aaaaaaaaaaaaaaaaaaaaa......',
+];
+
+const CAT_LEGS = [
+  [
+    '......AAa..AAa..........AAa..AAa',
+    '.....AAa....AAa........AAa....AA',
+    '....AAa......AAa......AAa......A',
+    '...WWW........WWW....WWW.......W',
+  ],
+  [
+    '........AAaAAa............AAaAA.',
+    '........AAaAAa............AAaAA.',
+    '........AAaAAa............AAaAA.',
+    '........WWWWWW............WWWWW.',
+  ],
+];
+
+// The pounce: stretched long and high, claws out, mouth open.
+const CAT_POUNCE = [
+  '..........................a....a',
+  '.........................aPa..aP',
+  '.........................aAAaaAA',
+  '.aa.....................AAAAAAAA',
+  'aAAa....................AAWWKAAW',
+  'a..aa...aaaaaaaaaaaaaaaAAAAAAPAA',
+  '.....aaAAADAAADAAADAAAAAAWWWWWWA',
+  '......AAAADAAADAAADAAAAAAWKKKKWA',
+  '......aAAAAAAAAAAAAAAAAAAWWRRWW.',
+  '.......aAAAAAAAAAAAAAAAAAAWWWW..',
+  '........aaaaaaaaaaaaaaaaaaaaa...',
+];
+
+const CAT_POUNCE_LEGS = [
+  '........................AAAAAAa.',
+  '......AAa...............aAAAAAWW',
+  '.....AAa.................aaaa.WW',
+  '....AAa.........................',
+  '...AAa..........................',
+  '..AAa...........................',
+  '.WWW............................',
+];
+
+function cat(step) {
+  const frame = new Canvas(32, 24);
+  // Shifted left a pixel so the outline fits on the right.
+  frame.stamp(CAT_LEGS[step], -1, 20);
+  frame.stamp(CAT_BODY, -1, 8 - step);
+  return frame.outline();
+}
+
+function catPounce() {
+  const frame = new Canvas(32, 24);
+  frame.stamp(CAT_POUNCE_LEGS, -2, 16);
+  frame.stamp(CAT_POUNCE, -2, 5);
+  return frame.outline();
+}
+
+export const catFrames = [cat(0), cat(1), catPounce()];
+
+// ---------------------------------------------------------------- crab 32x20
+const CRAB_CLAW = [
+  [
+    '.RRR...',
+    'RRPRr..',
+    'RR.....',
+    'RRRRr..',
+    '.RRRRr.',
+    '..rRRr.',
+    '...rRR.',
+    '....rRR',
+  ],
+  [
+    '.RRRR..',
+    'RRPRRr.',
+    'RRRRRr.',
+    '.RRRRr.',
+    '..RRRr.',
+    '..rRRr.',
+    '...rRR.',
+    '....rRR',
+  ],
+];
+
+const CRAB_EYES = [
+  '.WW......WW.',
+  'WKW.....WKW.',
+  '.WW......WW.',
+  '..r......r..',
+  '..r......r..',
+];
+
+const CRAB_LEGS = [
+  [
+    '......r.r.r..........r.r.r......',
+    '.....r.r.r............r.r.r.....',
+    '....r.r.r..............r.r.r....',
+    '....r.r.r..............r.r.r....',
+  ],
+  [
+    '.......r.r.r........r.r.r.......',
+    '......r.r.r..........r.r.r......',
+    '......r.r.r..........r.r.r......',
+    '.....r.r.r............r.r.r.....',
+  ],
+];
+
+function crab(step) {
+  const frame = new Canvas(32, 20);
+  const { R, r, P, K } = PALETTE;
+  frame.stamp(CRAB_LEGS[step], 0, 15);
+  frame.ellipse(15.5, 12, 10, 5, R);
+  for (let x = 6; x < 26; x++) frame.set(x, 16, r);
+  frame.ellipse(15.5, 15, 8, 1, r);
+  frame.rect(10, 9, 2, 1, P);
+  frame.rect(13, 8, 3, 1, P);
+  frame.rect(20, 9, 2, 1, P);
+  // A happy little mouth.
+  frame.rect(14, 13, 4, 1, K);
+  frame.set(13, 12, K);
+  frame.set(18, 12, K);
+  frame.stamp(CRAB_EYES, 10, 3 + step);
+  frame.stamp(CRAB_CLAW[step], 0, 1 + step);
+  frame.stamp(CRAB_CLAW[step], 25, 1 + step, { flip: true });
+  return frame.outline();
+}
+
+export const crabFrames = [crab(0), crab(1)];

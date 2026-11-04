@@ -3,9 +3,11 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as backdrops from './backdrops.mjs';
-import { dogFrames, foxFrames, gooseFrames, ratFrames, vanFrames, workerFrames } from './enemies.mjs';
-import { butcherFrames, chickenFrames } from './heroes.mjs';
-import { checkpointFrames, cleaver, corn, egg, goal, goldenEgg, powerups } from './items.mjs';
+import { catFrames, crabFrames, dogFrames, foxFrames, gooseFrames, pigeonFrames, ratFrames, vanFrames, workerFrames } from './enemies.mjs';
+import { butcherFrames, chickenFrames, scooterButcherFrames } from './heroes.mjs';
+import {
+  bounceFrames, checkpointFrames, cleaver, corn, crate, egg, goal, goldenEgg, hats, movingPlatform, powerups, sausage, shopIcons,
+} from './items.mjs';
 import { Canvas, PALETTE, hstrip, writeOutput } from './lib.mjs';
 import * as tilesets from './tilesets.mjs';
 
@@ -22,7 +24,15 @@ const sheets = {
   goose: gooseFrames,
   van: vanFrames,
   checkpoint: checkpointFrames,
+  // Update 1
+  pigeon: pigeonFrames,
+  cat: catFrames,
+  crab: crabFrames,
+  'scooter-butcher': scooterButcherFrames,
+  bounce: bounceFrames,
 };
+
+const THEMES = ['slaughterhouse', 'farm', 'road', 'market', 'rooftops', 'harbour'];
 
 const images = {
   cleaver,
@@ -33,32 +43,72 @@ const images = {
   ...Object.fromEntries(Object.entries(powerups).map(([kind, image]) => [`powerup-${kind}`, image])),
 };
 
+// Update 1 images, kept apart so the original contact sheet stays as it was.
+const newImages = {
+  sausage,
+  crate,
+  'moving-platform': movingPlatform,
+  ...Object.fromEntries(Object.entries(hats).map(([id, image]) => [`hat-${id}`, image])),
+  ...Object.fromEntries(Object.entries(shopIcons).map(([id, image]) => [`shop-${id}`, image])),
+};
+
 for (const [key, frames] of Object.entries(sheets)) {
   writeOutput(join(ASSETS, 'sprites', `${key}.png`), hstrip(frames).toPng());
 }
-for (const [key, image] of Object.entries(images)) {
+for (const [key, image] of Object.entries({ ...images, ...newImages })) {
   writeOutput(join(ASSETS, 'sprites', `${key}.png`), image.toPng());
 }
-for (const theme of ['slaughterhouse', 'farm', 'road']) {
+for (const theme of THEMES) {
   writeOutput(join(ASSETS, 'tiles', `tiles-${theme}.png`), tilesets[theme].toPng());
   writeOutput(join(ASSETS, 'backdrops', `bg-${theme}.png`), backdrops[theme].toPng());
 }
 
 // ---------------------------------------------------------------- contact sheet
-function contactSheet() {
-  const scale = 4;
-  const margin = 12;
-  const width = 1500;
-  const rows = [];
-  const add = (label, canvases, drawScale = scale) => rows.push({ label, canvases, drawScale });
+const SCALE = 4;
+const ORIGINAL_SHEETS = ['chicken', 'butcher', 'worker', 'rat', 'dog', 'fox', 'goose', 'van', 'checkpoint'];
 
-  for (const [key, frames] of Object.entries(sheets)) add(`${key} ${frames.length} frames`, frames);
+function originalRows() {
+  const rows = [];
+  const add = (label, canvases, drawScale = SCALE) => rows.push({ label, canvases, drawScale });
+  for (const key of ORIGINAL_SHEETS) add(`${key} ${sheets[key].length} frames`, sheets[key]);
   add('items', Object.values(images).filter((image) => image.width <= 20));
   add('power-ups', Object.values(powerups));
   add('goal golden-egg', [goal, goldenEgg]);
   for (const theme of ['slaughterhouse', 'farm', 'road']) add(`tiles-${theme}`, [tilesets[theme]], 3);
   add('backdrops', [backdrops.slaughterhouse, backdrops.farm], 1);
   add('', [backdrops.road, levelMockup()], 1);
+  return rows;
+}
+
+function update1Rows() {
+  const rows = [];
+  const add = (label, canvases, drawScale = SCALE) => rows.push({ label, canvases, drawScale });
+  for (const key of ['pigeon', 'cat', 'crab', 'scooter-butcher', 'bounce']) add(`${key} ${sheets[key].length} frames`, sheets[key]);
+  add('sausage', [sausage]);
+  add('crate', [crate]);
+  add('moving-platform', [movingPlatform]);
+  add('hats', Object.values(hats));
+  add('hats on the chicken', Object.values(hats).flatMap((image) => [hatOnChicken(image, 0), hatOnChicken(image, 1), hatOnChicken(image, 6)]));
+  add('shop icons', Object.values(shopIcons));
+  for (const theme of ['market', 'rooftops', 'harbour']) add(`tiles-${theme}`, [tilesets[theme]], 4);
+  add('backdrops', [backdrops.market, backdrops.rooftops], 1);
+  add('', [backdrops.harbour, worldTwoMockup('market')], 1);
+  add('', [worldTwoMockup('rooftops'), worldTwoMockup('harbour')], 1);
+  return rows;
+}
+
+// A chicken frame wearing a hat, placed by the rule in items.mjs.
+function hatOnChicken(hatImage, frameIndex) {
+  const frame = new Canvas(28, 34);
+  const bob = [0, 1, 0, 1, 0, 1, 1][frameIndex];
+  frame.blit(chickenFrames[frameIndex], 0, 6);
+  frame.blit(hatImage, 19 - 10, 6 + 6 + bob - 14);
+  return frame;
+}
+
+function contactSheet(rows) {
+  const margin = 12;
+  const width = 1500;
 
   let height = margin;
   for (const row of rows) {
@@ -112,6 +162,46 @@ function levelMockup() {
   return frame;
 }
 
+function worldTwoMockup(theme) {
+  const frame = new Canvas(640, 360).blit(backdrops[theme]);
+  const tileAt = (index, x, y) => {
+    const tile = new Canvas(32, 32);
+    for (let py = 0; py < 32; py++) {
+      for (let px = 0; px < 32; px++) tile.set(px, py, tilesets[theme].get(index * 32 + px, py));
+    }
+    frame.blit(tile, x, y);
+  };
+  for (let x = 0; x < 640; x += 32) {
+    if (x >= 352 && x < 416) {
+      tileAt(3, x, 296);
+      tileAt(1, x, 328);
+      continue;
+    }
+    tileAt(0, x, 296);
+    tileAt(1, x, 328);
+  }
+  for (let x = 160; x < 288; x += 32) tileAt(2, x, 200);
+  for (let i = 4; i < 8; i++) tileAt(i, 32 + (i - 4) * 32 + (i > 5 ? 448 : 0), 264);
+  frame.blit(chickenFrames[1], 200, 268);
+  frame.blit(hats.straw, 200 + 9, 268 + 6 + 1 - 14);
+  frame.blit(corn, 208, 176);
+  if (theme === 'market') {
+    frame.blit(scooterButcherFrames[0], 60, 240);
+    frame.blit(bounceFrames[0], 300, 280);
+    frame.blit(crate, 448, 264);
+    frame.blit(catFrames[0], 400, 248);
+  } else if (theme === 'rooftops') {
+    frame.blit(pigeonFrames[0], 300, 150);
+    frame.blit(catFrames[2], 440, 272);
+    frame.blit(sausage, 140, 250);
+  } else {
+    frame.blit(movingPlatform, 300, 150);
+    frame.blit(crabFrames[0], 440, 276);
+    frame.blit(pigeonFrames[1], 120, 120);
+  }
+  return frame;
+}
+
 const FONT = {
   a: '010101111101101', b: '110101110101110', c: '011100100100011', d: '110101101101110', e: '111100110100111',
   f: '111100110100100', g: '011100101101011', h: '101101111101101', i: '111010010010111', j: '001001001101010',
@@ -135,4 +225,5 @@ function text(canvas, string, x, y, scale) {
   }
 }
 
-writeOutput(join(ROOT, 'docs', 'art-contact-sheet.png'), contactSheet().toPng());
+writeOutput(join(ROOT, 'docs', 'art-contact-sheet.png'), contactSheet(originalRows()).toPng());
+writeOutput(join(ROOT, 'docs', 'art-contact-sheet-update-1.png'), contactSheet(update1Rows()).toPng());

@@ -11,6 +11,12 @@ All sprites, tilesets, backdrops, sound effects and music in `public/assets/` ar
 original and made by the scripts in `tools/art/`:
 
 ```sh
-node tools/art/build-art.mjs    # sprites, tilesets, backdrops, docs/art-contact-sheet.png
+node tools/art/build-art.mjs    # sprites, tilesets, backdrops, both contact sheets in docs/
 node tools/art/build-audio.mjs  # sound effects and music loops
 ```
+
+That includes everything added in Update 1: the City world's market, rooftops and
+harbour tilesets and backdrops, the pigeon, cat, crab and scooter butcher, the
+sausage, crate, bounce awning and crane pallet, the three hats, the shop icons,
+the buy, bounce and splash sounds, and the market, rooftops, harbour and second
+boss music. `docs/art-contact-sheet-update-1.png` shows all of it.
