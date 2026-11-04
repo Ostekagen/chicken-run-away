@@ -6,7 +6,14 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 const SIZE = 32;
 const [TOP, FILL, ONE_WAY, HAZARD] = [1, 2, 3, 4];
 // Scattered on the ground. Crates, hay and cones are left out, as they look solid.
-const DECORATION = { slaughterhouse: [6, 8], farm: [5, 7, 8], road: [5, 7, 8] };
+// World 2's tilesets are drawn in parallel, so they get no scattered decoration yet.
+const DECORATION = { slaughterhouse: [6, 8], farm: [5, 7, 8], road: [5, 7, 8], market: [], rooftops: [], harbour: [] };
+const PLATFORM_HEIGHT = 16;
+
+function propertyType(value) {
+  if (typeof value !== 'number') return 'string';
+  return Number.isInteger(value) ? 'int' : 'float';
+}
 
 export class Level {
   constructor({ width, height, tileset }) {
@@ -15,6 +22,7 @@ export class Level {
     this.tileset = tileset;
     this.tiles = new Array(width * height).fill(0);
     this.objects = [];
+    this.properties = {}; // map properties, such as scrollSpeed
     this.x = 0; // where run() and gap() continue from
   }
 
@@ -65,6 +73,27 @@ export class Level {
   boss(x, row) { this.point('boss', x, row); }
   enemy(kind, x, row) { this.point('enemy', x, row, { kind }); }
   powerup(kind, x, row) { this.point('powerup', x, row, { kind }); }
+  // A pigeon's point is its feet while flying, `height` tiles above the floor `row`.
+  pigeon(x, row, height = 4) { this.enemy('pigeon', x, row - height); }
+  scooterBoss(x, row) { this.point('scooter-boss', x, row); }
+
+  // An awning standing on `row` that throws the chicken up at `power` px/s.
+  bounce(x, row, power) { this.point('bounce', x, row, power ? { power } : undefined); }
+
+  // A moving platform `width` tiles wide from column `x`, its top level with the top of
+  // `row`, like a one-way tile there. It travels dx, dy tiles and back over periodMs.
+  platform(x, row, width, dx, dy, periodMs) {
+    this.objects.push({
+      name: '', type: 'moving-platform', x: (x + width / 2) * SIZE, y: row * SIZE + PLATFORM_HEIGHT,
+      width: width * SIZE, height: PLATFORM_HEIGHT, properties: { dx: dx * SIZE, dy: dy * SIZE, periodMs },
+    });
+  }
+
+  // Moving levels: the screen speeds up or slows down once its middle passes column x.
+  scrollSpeed(x, row, speed) { this.point('scroll-speed', x, row, { speed }); }
+
+  // A solid box standing on the surface `row`, such as a crate or a market stall.
+  box(x, row, width = 1, height = 1) { this.block(x, x + width - 1, row - height, row - 1); }
 
   // Corn hovers a little above the surface `row`.
   corn(x, row) {
@@ -129,7 +158,7 @@ export class Level {
       visible: true,
       ...(properties && {
         properties: Object.entries(properties).map(([key, value]) => (
-          { name: key, type: typeof value === 'number' ? 'int' : 'string', value }
+          { name: key, type: propertyType(value), value }
         )),
       }),
     }));
@@ -146,6 +175,9 @@ export class Level {
       tileheight: SIZE,
       nextlayerid: 3,
       nextobjectid: objects.length + 1,
+      ...(Object.keys(this.properties).length && {
+        properties: Object.entries(this.properties).map(([key, value]) => ({ name: key, type: propertyType(value), value })),
+      }),
       tilesets: [{
         firstgid: 1,
         name: this.tileset,
