@@ -5,6 +5,8 @@ import type { GameScene } from '../../scenes/GameScene';
 import { levelOver, perRun } from './shared';
 
 type Cleaver = Phaser.Physics.Arcade.Image;
+// What the butchers throw. Everything flies, hits and lands the same way.
+export type Projectile = 'cleaver' | 'sausage';
 
 const cleaversOf = perRun((scene) => {
   const cleavers = scene.physics.add.group();
@@ -17,9 +19,12 @@ const cleaversOf = perRun((scene) => {
 });
 
 // Throws in an arc that reaches the target after the flight time.
-export function throwCleaver(scene: GameScene, x: number, y: number, targetX: number, targetY: number, flightMs: number) {
-  const { color, size, hitboxSize, spinPerSecond, lifeMs } = ENEMIES.cleaver;
-  const key = ensureTexture(scene, 'cleaver', color, size, size);
+export function throwCleaver(
+  scene: GameScene, x: number, y: number, targetX: number, targetY: number, flightMs: number,
+  projectile: Projectile = 'cleaver',
+) {
+  const { color, size, hitboxSize, spinPerSecond, lifeMs } = ENEMIES[projectile];
+  const key = ensureTexture(scene, projectile, color, size, size);
   const cleaver: Cleaver = cleaversOf(scene).create(x, y, key);
   const seconds = flightMs / 1000;
   cleaver.setCircle(hitboxSize / 2, (size - hitboxSize) / 2, (size - hitboxSize) / 2);

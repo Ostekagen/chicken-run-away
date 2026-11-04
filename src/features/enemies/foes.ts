@@ -3,6 +3,7 @@ import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
 import { Enemy, EnemyKind, Foe } from './Enemy';
 import { onEggHit } from './powerupAdapter';
+import { Pigeon } from './Pigeon';
 import { levelOver, listen, perRun } from './shared';
 import { Van } from './Van';
 
@@ -31,5 +32,11 @@ const foesOf = perRun((scene) => {
 
 export function addEnemy(scene: GameScene, kind: EnemyKind | undefined, x: number, feetY: number) {
   if (!kind || !(kind in ENEMIES.kinds)) throw new Error(`Unknown enemy kind "${kind}"`);
-  foesOf(scene).push(kind === 'van' ? new Van(scene, x, feetY) : new Enemy(scene, kind, x, feetY));
+  foesOf(scene).push(createFoe(scene, kind, x, feetY));
+}
+
+function createFoe(scene: GameScene, kind: EnemyKind, x: number, feetY: number): Foe {
+  if (kind === 'van') return new Van(scene, x, feetY);
+  if (kind === 'pigeon') return new Pigeon(scene, x, feetY);
+  return new Enemy(scene, kind, x, feetY);
 }

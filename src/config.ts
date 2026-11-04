@@ -67,6 +67,9 @@ export const ENEMIES = {
     goose: { color: 0xf1f1e6, width: 28, height: 32, speed: 40 },
     fox: { color: 0xe07b39, width: 40, height: 24, speed: 60 },
     van: { color: 0xd9d9e3, width: 96, height: 48, speed: 400 },
+    pigeon: { color: 0x9aa3b5, width: 28, height: 20, speed: 55 },
+    cat: { color: 0x4a4a5a, width: 32, height: 24, speed: 45 },
+    crab: { color: 0xe0553d, width: 32, height: 20, speed: 45 },
   },
   // Enemies notice the chicken when it is this close, sideways and up or down.
   noticeX: 180,
@@ -75,6 +78,56 @@ export const ENEMIES = {
   goose: { burstSpeed: 230, burstMs: 450, restMs: 750 },
   fox: { hopSpeed: 430, hopRunSpeed: 110, hopEveryMs: 1500, hopLandingX: 80 },
   van: { noticeX: 420, noticeY: 96, warnMs: 800, pauseMs: 2800, warnColor: 0xff4136 },
+  // Pigeons place their feet where the map point is, and cruise around it.
+  pigeon: {
+    rangeX: 90,
+    waveY: 8,
+    waveMs: 1400,
+    // Swoops at a chicken below it that is this close sideways, and this far down.
+    swoopNoticeX: 110,
+    swoopMinDropY: 36,
+    swoopMaxDropY: 170,
+    tellMs: 350,
+    swoopMs: 1200,
+    swoopCooldownMs: 1800,
+  },
+  // Waits crouched, wiggles for tellMs, then pounces in an arc of up to maxPounceX.
+  cat: { noticeX: 150, noticeY: 72, tellMs: 450, pounceSpeed: 400, minPounceX: 48, maxPounceX: 170, restMs: 1100 },
+  // The butcher's van at the left edge of a moving level. Visual only.
+  vanChaser: { bobPx: 2, bobMs: 140, honkNearPx: 90, honkEveryMs: 1800, puffEveryMs: 220, followYPerSecond: 5 },
+  scooterBoss: {
+    color: 0xc0392b,
+    width: 64,
+    height: 56,
+    hitsToDefeat: 6,
+    wakeDistanceX: 280,
+    // Crate piles stand this far either side of the middle of the arena.
+    pileOffsetX: 256,
+    crateColor: 0xb07d48,
+    // A phase lasts two hits. Every ride ends crashed into a crate pile: the opening.
+    phases: [
+      { speed: 130, throws: 2, flightMs: 1150, dazedMs: 3400 },
+      { speed: 175, throws: 3, flightMs: 1050, dazedMs: 3000 },
+      { speed: 220, throws: 4, flightMs: 950, dazedMs: 2600 },
+    ],
+    // No sausage is thrown at a chicken closer than this, so it can always be dodged.
+    throwMinGapX: 100,
+    crashBounceX: 28,
+    recoverMs: 800,
+    safeAfterStompMs: 1000,
+    stompPushSpeed: 220,
+    firstDropMs: 1500,
+    dropEveryMs: 9000,
+    dropOffsetX: 120,
+    // On defeat he tips into the harbour this far from the middle, on the side with more room.
+    harbourOffsetX: 420,
+    tipOverMs: 1300,
+    tipArcHeight: 150,
+    sinkMs: 900,
+    finishDelayMs: 1800,
+    splashColor: 0x5bc0f8,
+  },
+  sausage: { color: 0xd2694a, size: 16, hitboxSize: 10, spinPerSecond: 540, lifeMs: 4000, fadeMs: 300 },
   butcher: {
     color: 0xc0392b,
     width: 40,
