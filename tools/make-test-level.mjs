@@ -77,5 +77,18 @@ const map = {
   ],
 };
 
+// Optional arguments: an output name, a tileset name, and a scroll speed that makes it a
+// moving level which speeds up halfway. World 2 starts with copies of this level as placeholders.
+const [name = 'test', tilesetName, scrollSpeed] = process.argv.slice(2);
+if (tilesetName) map.tilesets[0].name = tilesetName;
+if (scrollSpeed) {
+  map.properties = [{ name: 'scrollSpeed', type: 'float', value: Number(scrollSpeed) }];
+  map.layers[1].objects.push({
+    id: 3, name: '', type: 'scroll-speed', point: true, x: 60 * TILE, y: GROUND_ROW * TILE,
+    width: 0, height: 0, rotation: 0, visible: true,
+    properties: [{ name: 'speed', type: 'float', value: Number(scrollSpeed) * 1.4 }],
+  });
+}
+
 mkdirSync('public/levels', { recursive: true });
-writeFileSync('public/levels/test.json', JSON.stringify(map));
+writeFileSync(`public/levels/${name}.json`, JSON.stringify(map));

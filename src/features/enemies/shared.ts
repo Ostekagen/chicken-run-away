@@ -96,3 +96,15 @@ export function showDizzy(scene: Phaser.Scene, sprite: Phaser.GameObjects.Sprite
     if (tween.isPlaying()) tween.stop();
   };
 }
+
+// Plays an animation only once the art for it is loaded.
+export function playIfExists(sprite: Phaser.GameObjects.Sprite, key: string) {
+  if (sprite.scene.anims.exists(key)) sprite.play(key, true);
+}
+
+// Shows a pose from the sprite sheet, such as a pounce, if the sheet has that frame.
+export function showFrame(sprite: Phaser.GameObjects.Sprite, index: number) {
+  sprite.stop();
+  if (sprite.texture.has(String(index))) sprite.setFrame(index);
+  else if (sprite.texture.has('0')) sprite.setFrame(0);
+}

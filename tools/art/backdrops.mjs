@@ -134,6 +134,216 @@ export const road = (() => {
   return frame;
 })();
 
+// ===================================================== Update 1: World 2, the city
+
+function triangle(frame, cx, top, half, height, color) {
+  for (let row = 0; row < height; row++) {
+    const width = Math.round((row / height) * half);
+    frame.rect(cx - width, top + row, width * 2 + 1, 1, color);
+  }
+}
+
+// A striped awning seen from the front: sloped stripes and a scalloped hem.
+function stallAwning(frame, x, y, width, colors) {
+  const [stripe, plain, hem] = colors;
+  for (let px = 0; px < width; px++) {
+    const on = Math.floor(px / 10) % 2 === 0;
+    frame.rect(x + px, y, 1, 18, on ? stripe : plain);
+    const scallop = Math.round(Math.sin(((px % 10) / 10) * Math.PI) * 4);
+    frame.rect(x + px, y + 18, 1, scallop, on ? hem : plain);
+  }
+  frame.rect(x, y, width, 2, plain);
+}
+
+export const market = (() => {
+  const frame = new Canvas(WIDTH, HEIGHT);
+  bandedSky(frame, [0x84ccf2, 0x96d5f4, 0xaadef6, 0xbee7f6, 0xd2eff4], 34);
+  for (const [x, y, size] of [[70, 40, 10], [300, 24, 8], [500, 54, 11]]) cloudSoft(frame, x, y, size);
+  const random = seededRandom(31);
+  // Tall townhouses in soft pastel colours.
+  const walls = [0xf2cbc4, 0xf6e4b0, 0xcde9d3, 0xdcd3ee, 0xf6d6b8, 0xcbe0f0];
+  let x = -10;
+  let index = 0;
+  while (x < WIDTH) {
+    const width = 70 + Math.floor(random() * 30);
+    const top = 90 + Math.floor(random() * 50);
+    const wall = walls[index++ % walls.length];
+    frame.rect(x, top, width, HEIGHT - top, wall);
+    frame.rect(x, top, 3, HEIGHT - top, 0xffffff);
+    frame.rect(x + width - 3, top, 3, HEIGHT - top, 0xd8c8c0);
+    // Gabled or flat roof.
+    if (index % 2) triangle(frame, x + Math.floor(width / 2), top - 26, Math.floor(width / 2) + 2, 27, 0xcf9282);
+    else {
+      frame.rect(x - 2, top - 6, width + 4, 6, 0xcf9282);
+      frame.rect(x - 2, top - 6, width + 4, 2, 0xe0aa9c);
+    }
+    for (let wy = top + 14; wy < 230; wy += 34) {
+      for (let wx = x + 12; wx < x + width - 20; wx += 24) {
+        frame.rect(wx - 2, wy - 2, 16, 22, 0xffffff);
+        frame.rect(wx, wy, 12, 18, 0xa9d8ee);
+        frame.rect(wx, wy, 12, 4, 0xcdeaf6);
+        frame.rect(wx + 5, wy, 2, 18, 0xffffff);
+        frame.rect(wx - 2, wy + 20, 16, 2, 0xd0c4bc);
+      }
+    }
+    x += width + 2;
+  }
+  // Bunting strung across the street.
+  const flags = [0xf28a84, 0xffd86a, 0x8fd38a, 0x86b8f0, 0xc69ae8];
+  for (let start = 0; start < WIDTH; start += 160) {
+    for (let i = 0; i < 160; i++) {
+      const sag = Math.round(Math.sin((i / 160) * Math.PI) * 18);
+      frame.set(start + i, 150 + sag, 0x8a7a8a);
+      if (i % 14 === 4) triangle(frame, start + i + 3, 151 + sag, 4, 9, flags[(i / 14 + start / 160) % 5 | 0]);
+    }
+  }
+  // Market stalls along the street.
+  const awnings = [[0xf28a84, 0xfff6ee, 0xd86e68], [0x8fd38a, 0xfff6ee, 0x6fb86a], [0x86b8f0, 0xfff6ee, 0x6a9cd6], [0xffc86a, 0xfff6ee, 0xe0a84a]];
+  const produce = [0xf28a84, 0xffd86a, 0x9ad87a, 0xffa860, 0xc69ae8];
+  for (let i = 0; i < 5; i++) {
+    const sx = 10 + i * 130;
+    stallAwning(frame, sx, 214, 110, awnings[i % awnings.length]);
+    frame.rect(sx + 4, 236, 3, 60, 0xb89a80);
+    frame.rect(sx + 103, 236, 3, 60, 0xb89a80);
+    frame.rect(sx, 270, 110, 26, 0xd8b48a);
+    frame.rect(sx, 270, 110, 3, 0xe8caa4);
+    for (let p = 0; p < 9; p++) circle(frame, sx + 10 + p * 11, 266, 5, produce[(p + i) % produce.length]);
+  }
+  // Pale cobbled street.
+  frame.rect(0, 296, WIDTH, HEIGHT - 296, 0xd8ccbc);
+  for (let row = 0; row < 8; row++) {
+    for (let cx = (row % 2) * 8; cx < WIDTH; cx += 16) frame.rect(cx, 300 + row * 8, 12, 5, 0xe4dacc);
+  }
+  return frame;
+})();
+
+export const rooftops = (() => {
+  const frame = new Canvas(WIDTH, HEIGHT);
+  // Late afternoon, the sun going down: the chase is on.
+  bandedSky(frame, [0x8a9ad8, 0xa2a6dc, 0xbcaedc, 0xd8b4d4, 0xf0bcc0, 0xf8caa8, 0xfcd8a4], 30);
+  circle(frame, 470, 170, 40, 0xffe2b0);
+  circle(frame, 470, 170, 32, 0xffcf86);
+  for (const [x, y, size] of [[90, 50, 9], [300, 80, 7], [560, 40, 8]]) cloudSoft(frame, x, y, size);
+  const random = seededRandom(47);
+  const skyline = (base, minH, maxH, color, windows, seed) => {
+    const r = seededRandom(seed);
+    let x = -5;
+    while (x < WIDTH) {
+      const width = 24 + Math.floor(r() * 40);
+      const top = base - minH - Math.floor(r() * (maxH - minH));
+      frame.rect(x, top, width, HEIGHT - top, color);
+      const roll = r();
+      if (roll < 0.15) triangle(frame, x + Math.floor(width / 2), top - 30, 6, 30, color); // spire
+      else if (roll < 0.3) circle(frame, x + Math.floor(width / 2), top, Math.floor(width / 3), color); // dome
+      else if (roll < 0.5) frame.rect(x + 4, top - 10, 6, 10, color); // chimney stack
+      if (windows) {
+        for (let wy = top + 6; wy < HEIGHT; wy += 10) {
+          for (let wx = x + 4; wx < x + width - 5; wx += 8) {
+            if (r() < 0.35) frame.rect(wx, wy, 3, 4, windows);
+          }
+        }
+      }
+      x += width + Math.floor(r() * 6);
+    }
+  };
+  skyline(250, 40, 120, 0xc3b2d6, null, 3);
+  skyline(270, 30, 90, 0xa797c4, 0xf6e0b4, 8);
+  // A clock tower standing above the rest.
+  frame.rect(300, 92, 40, 200, 0x8f80b0);
+  triangle(frame, 320, 50, 24, 44, 0x8f80b0);
+  circle(frame, 320, 116, 12, 0xfff0cc);
+  frame.rect(319, 106, 2, 10, 0x8f80b0);
+  frame.rect(320, 115, 7, 2, 0x8f80b0);
+  // Near rooftops: chimneys, a water tower and washing lines.
+  frame.rect(0, 286, WIDTH, HEIGHT - 286, 0x8a7aa8);
+  for (let x = 0; x < WIDTH; x += 8) frame.rect(x, 282 + ((x / 8) % 2) * 2, 8, 4, 0x8a7aa8);
+  for (let i = 0; i < 9; i++) {
+    const cx = 30 + i * 70 + Math.floor(random() * 20);
+    const h = 18 + Math.floor(random() * 22);
+    frame.rect(cx, 286 - h, 14, h, 0x8a7aa8);
+    frame.rect(cx - 2, 286 - h, 18, 4, 0x9a8ab6);
+    frame.rect(cx + 3, 280 - h, 3, 6, 0x9a8ab6);
+    frame.rect(cx + 8, 282 - h, 3, 4, 0x9a8ab6);
+  }
+  // Water tower.
+  frame.rect(520, 200, 50, 46, 0x8a7aa8);
+  triangle(frame, 545, 176, 30, 26, 0x8a7aa8);
+  for (const lx of [524, 562]) frame.rect(lx, 246, 4, 40, 0x8a7aa8);
+  for (let y = 206; y < 246; y += 10) frame.rect(520, y, 50, 1, 0x9a8ab6);
+  // A washing line with laundry.
+  const laundry = [0xf6d6e0, 0xd6e8f6, 0xfff2c8, 0xd6f0d6];
+  for (let i = 0; i < 180; i++) {
+    const sag = Math.round(Math.sin((i / 180) * Math.PI) * 12);
+    frame.set(100 + i, 244 + sag, 0x6e6090);
+    if (i % 30 === 10) frame.rect(100 + i, 245 + sag, 12, 14, laundry[(i / 30) % 4 | 0]);
+  }
+  return frame;
+})();
+
+export const harbour = (() => {
+  const frame = new Canvas(WIDTH, HEIGHT);
+  bandedSky(frame, [0x7cc8f0, 0x8fd2f4, 0xa4dcf6, 0xbae6f8, 0xd0eef8], 36);
+  for (const [x, y, size] of [[120, 40, 11], [380, 30, 8], [540, 70, 10]]) cloudSoft(frame, x, y, size);
+  // Gulls.
+  for (const [x, y] of [[230, 70], [250, 84], [460, 110], [90, 120]]) {
+    for (let i = 0; i < 5; i++) {
+      frame.set(x - i, y - Math.round(Math.sqrt(i) * 2), 0x6a7a8e);
+      frame.set(x + i, y - Math.round(Math.sqrt(i) * 2), 0x6a7a8e);
+    }
+  }
+  // Far headland with a lighthouse.
+  hills(frame, 196, 6, 1, 0xa9cfae, 0xbfe0bf);
+  frame.rect(560, 136, 16, 60, 0xffffff);
+  for (const y of [148, 168, 188]) frame.rect(560, y, 16, 8, 0xf28a84);
+  frame.rect(557, 126, 22, 10, 0x8fa0b8);
+  frame.rect(562, 128, 12, 6, 0xfff0a0);
+  triangle(frame, 568, 114, 12, 13, 0xf28a84);
+  // The sea, in soft bands with glints.
+  const sea = [0x8fd0e6, 0x82c8e0, 0x74bedb, 0x68b4d4];
+  for (let y = 206; y < HEIGHT; y++) frame.rect(0, y, WIDTH, 1, sea[Math.min(3, Math.floor((y - 206) / 36))]);
+  const random = seededRandom(61);
+  for (let i = 0; i < 90; i++) {
+    const y = 210 + Math.floor(random() * 140);
+    frame.rect(Math.floor(random() * WIDTH), y, 4 + Math.floor(random() * 8), 1, 0xc6eaf4);
+  }
+  // A container ship on the horizon.
+  frame.rect(380, 186, 120, 16, 0x8a9ab4);
+  for (let row = 0; row < 6; row++) frame.rect(380 + row, 196 + row, 120 - row * 2, 1, 0x7a8aa4);
+  const boxes = [0xf2a28a, 0x9ac8e8, 0xf6d68a, 0xa8dca0];
+  for (let i = 0; i < 8; i++) frame.rect(392 + i * 12, 172 + (i % 3 === 1 ? -8 : 0), 11, 14 + (i % 3 === 1 ? 8 : 0), boxes[i % 4]);
+  frame.rect(480, 160, 12, 26, 0xf6f6fb);
+  // A sailing boat.
+  triangle(frame, 150, 200, 22, 46, 0xffffff);
+  frame.rect(150, 196, 2, 54, 0x9a8a7a);
+  for (let row = 0; row < 10; row++) frame.rect(118 + row, 250 + row, 64 - row * 2, 1, row < 3 ? 0xf28a84 : 0xd86e68);
+  // A little fishing boat.
+  for (let row = 0; row < 12; row++) frame.rect(240 + row, 262 + row, 70 - row * 2, 1, row < 3 ? 0x86b8f0 : 0x6a9cd6);
+  frame.rect(270, 244, 24, 18, 0xffffff);
+  frame.rect(274, 248, 7, 6, 0xa9d8ee);
+  frame.rect(284, 248, 7, 6, 0xa9d8ee);
+  frame.rect(260, 226, 2, 36, 0x9a8a7a);
+  // Harbour cranes in soft orange, cables down to their hooks.
+  const crane = (x, height, reach) => {
+    const top = 290 - height;
+    frame.rect(x, top, 6, height, 0xeaa676);
+    frame.rect(x + 30, top, 6, height, 0xd9946a);
+    for (let y = top + 10; y < 290; y += 24) {
+      for (let i = 0; i < 30; i++) frame.set(x + 3 + i, y + Math.round(i * 0.6), 0xeaa676);
+    }
+    frame.rect(x - 10, top - 10, 56, 12, 0xf0b484);
+    frame.rect(x - 10, top - 10, 56, 3, 0xf8caa4);
+    frame.rect(x + 36, top - 6, reach, 6, 0xf0b484);
+    frame.rect(x - 30, top - 6, 24, 8, 0xd9946a);
+    frame.rect(x + 10, top - 36, 4, 26, 0xeaa676);
+    for (let i = 0; i < reach; i += 2) frame.set(x + 12 + i, top - 36 + Math.round((i / reach) * 30), 0x9a7a6a);
+    frame.rect(x + 30 + reach, top, 1, 60, 0x7a6a6a);
+    frame.rect(x + 27 + reach, top + 60, 7, 3, 0x7a6a6a);
+  };
+  crane(30, 170, 60);
+  crane(420, 130, 50);
+  return frame;
+})();
+
 export const slaughterhouse = (() => {
   const frame = new Canvas(WIDTH, HEIGHT, 0xcfe6df);
   // Wall of big pale tiles.

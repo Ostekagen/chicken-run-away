@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ensureTexture } from '../../art';
 import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
+import { crowStunMs } from '../../upgrades';
 import type { Foe } from './Enemy';
 import { levelOver, showDizzy } from './shared';
 
@@ -55,8 +56,8 @@ export class Van extends Phaser.Physics.Arcade.Sprite implements Foe {
 
   stun(time: number) {
     if (this.mode !== 'driving') return;
-    this.stunnedUntil = time + ENEMIES.stunMs;
-    showDizzy(this.scene, this, ENEMIES.stunMs);
+    this.stunnedUntil = time + crowStunMs();
+    showDizzy(this.scene, this, crowStunMs());
   }
 
   reset(time: number) {

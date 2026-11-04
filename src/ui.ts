@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { ensureTexture } from './art';
 
 const FONT = 'monospace';
 const TEXT_RESOLUTION = 3;
@@ -24,9 +25,15 @@ export function addButton(scene: Phaser.Scene, x: number, y: number, label: stri
   return button;
 }
 
+// A corn icon with an amount after it. Returns the text, to update the amount.
+export function addCornCount(scene: Phaser.Scene, x: number, y: number, amount: number, size = 14) {
+  scene.add.image(x, y, ensureTexture(scene, 'corn', 0xffd23f, 16, 16));
+  return addText(scene, x + 12, y, String(amount), size).setOrigin(0, 0.5);
+}
+
 export function addStars(scene: Phaser.Scene, x: number, y: number, stars: number, size = 12) {
-  for (let i = 0; i < 3; i++) {
+  return [0, 1, 2].map((i) => {
     const color = i < stars ? 0xffd23f : 0x4a4e63;
-    scene.add.star(x + (i - 1) * size * 2.4, y, 5, size / 2, size, color).setStrokeStyle(2, 0x1d2030);
-  }
+    return scene.add.star(x + (i - 1) * size * 2.4, y, 5, size / 2, size, color).setStrokeStyle(2, 0x1d2030);
+  });
 }

@@ -1,10 +1,13 @@
-// Enemies, chases and the boss: registers "enemy", "chase-start", "chase-end" and "boss".
+// Enemies, chases and the bosses: registers "enemy", "chase-start", "chase-end", "boss" and
+// "scooter-boss". GameScene adds the butcher's van at the left edge of moving levels.
 import Phaser from 'phaser';
 import { objectProperty, registerLevelObject } from '../../levelObjects';
 import { Boss } from './Boss';
 import { addChaseEnd, addChaseStart } from './ButcherChase';
 import type { EnemyKind } from './Enemy';
 import { addEnemy } from './foes';
+import { ScooterBoss } from './ScooterBoss';
+import { addVanChaser } from './VanChaser';
 
 type TiledObject = Phaser.Types.Tilemaps.TiledObject;
 
@@ -24,3 +27,8 @@ registerLevelObject('chase-end', (scene, object) => addChaseEnd(scene, rectangle
 registerLevelObject('boss', (scene, object) => {
   new Boss(scene, object.x ?? 0, object.y ?? 0);
 });
+registerLevelObject('scooter-boss', (scene, object) => {
+  new ScooterBoss(scene, object.x ?? 0, object.y ?? 0);
+});
+
+export { addVanChaser };

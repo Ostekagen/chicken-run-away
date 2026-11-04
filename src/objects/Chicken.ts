@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { playSound } from '../audio';
 import { CHICKEN, POWERUPS, PowerUpKind } from '../config';
+import { hasUpgrade, rushMs, UPGRADE_EFFECTS } from '../upgrades';
 
 const RUN_ANIMATION_MIN_SPEED = 10;
 
@@ -13,7 +14,8 @@ export interface ChickenInput {
 export class Chicken extends Phaser.Physics.Arcade.Sprite {
   declare body: Phaser.Physics.Arcade.Body;
 
-  hearts = CHICKEN.maxHearts;
+  readonly maxHearts = CHICKEN.maxHearts + (hasUpgrade('extra-heart') ? UPGRADE_EFFECTS.extraHearts : 0);
+  hearts = this.maxHearts;
   powerUp: PowerUpKind | null = null;
 
   private invulnerableUntil = 0;
@@ -35,6 +37,7 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
 
   move(input: ChickenInput, time: number) {
     if (this.powerUp === 'corn-rush' && time >= this.rushEndsAt) this.setPowerUp(null);
+    if (this.body.velocity.y >= 0) this.body.setMaxVelocityY(CHICKEN.maxFallSpeed);
     const onGround = this.body.blocked.down;
     this.updateRun(input, onGround);
     this.updateJump(input, onGround, time);
@@ -48,7 +51,20 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
     if (kind) this.setTint(POWERUPS.colors[kind]);
     else this.clearTint();
     this.body.setMaxVelocityX(kind === 'corn-rush' ? POWERUPS.rushSpeed : CHICKEN.runSpeed);
-    if (kind === 'corn-rush') this.rushEndsAt = this.scene.time.now + POWERUPS.rushMs;
+    if (kind === 'corn-rush') this.rushEndsAt = this.scene.time.now + rushMs();
+  }
+
+  // For things that throw the chicken up, such as awnings. A throw is not a jump, so
+  // letting go of jump doesn't cut it short, and it may rise faster than the chicken falls.
+  launch(speed: number) {
+    this.body.setMaxVelocityY(Math.max(CHICKEN.maxFallSpeed, speed));
+    this.body.setVelocityY(-speed);
+    this.isJumping = false;
+  }
+
+  // Lets the chicken jump again before it stops rising, such as from a rising platform.
+  endJump() {
+    this.isJumping = false;
   }
 
   // Everything that hurts the chicken goes through here.
@@ -70,7 +86,8 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
   respawn(x: number, y: number) {
     this.setPosition(x, y);
     this.body.reset(x, y);
-    this.hearts = CHICKEN.maxHearts;
+    this.body.setMaxVelocityY(CHICKEN.maxFallSpeed);
+    this.hearts = this.maxHearts;
     this.invulnerableUntil = 0;
     this.isJumping = false;
     this.lastGroundedAt = -Infinity;
