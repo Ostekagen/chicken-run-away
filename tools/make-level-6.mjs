@@ -54,17 +54,17 @@ l.cornLine(x + 1, x + 2, G - 2);
 l.enemy('cat', x + 8, G - 1);
 water(3, G - 1, G);
 
-// Egg 1: under the jetty. A ladder of boards leads back up.
 x = dock(16, G);
 l.enemy('crab', x + 4, G);
 l.enemy('rat', x + 15, G);
-const jetty = x + 10;
+// Egg 1: under the jetty, through a hole in the boards. A board below the hole
+// leads back up.
+const jetty = x + 8;
 l.carve(jetty, jetty + 1, G, G);
 l.carve(jetty, jetty + 5, G + 1, G + 3);
+l.oneWay(jetty + 1, jetty + 1, G + 1);
 l.egg(jetty + 5, G + 4);
 l.cornLine(jetty + 1, jetty + 4, G + 4);
-l.oneWay(jetty + 2, jetty + 3, G + 1);
-l.carve(jetty + 2, jetty + 3, G, G);
 
 // The first crane, over the harbour mouth.
 crane(10, G, 4200);
@@ -83,8 +83,8 @@ chaseSpikes(x, [[18, 2], [24, 3], [31, 2], [37, 3], [43, 3], [50, 2], [56, 3], [
 l.cornLine(x + 12, x + 16, G);
 l.chaseEnd(x + 90, G);
 
-// The container yard. Stacks to climb, crabs on top, and a crane lift up to the
-// top of the tallest stack, where egg 2 waits.
+// The container yard. Stacks to climb, crabs on top, and a crane lift up and over
+// the tallest stack.
 water(3, G);
 x = dock(46, G);
 l.box(x + 4, G, 3, 2);
@@ -99,7 +99,9 @@ l.box(x + 25, G, 3, 3);
 l.box(x + 33, G, 4, 9);
 l.platform(x + 29, G - 1, 3, 0, -8, 5000);
 l.cornLine(x + 33, x + 36, G - 9);
-l.egg(x + 36, G - 9);
+// Egg 2 hangs from the crane arm, a jump up and out from the top of the stack.
+l.oneWay(x + 39, x + 40, G - 11);
+l.egg(x + 40, G - 11);
 l.enemy('crab', x + 40, G);
 l.enemy('crab', x + 44, G);
 l.cornLine(x + 38, x + 44, G, 2);
