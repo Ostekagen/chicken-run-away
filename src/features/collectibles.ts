@@ -2,9 +2,9 @@
 import Phaser from 'phaser';
 import { ensureTexture } from '../art';
 import { playSound } from '../audio';
-import { CHICKEN } from '../config';
 import { registerLevelObject } from '../levelObjects';
 import type { GameScene } from '../scenes/GameScene';
+import { hasUpgrade, UPGRADE_EFFECTS } from '../upgrades';
 
 const CORN_PER_HEART = 100;
 const STARS_KEY = 'chicken-run-away:stars';
@@ -45,7 +45,7 @@ function levelState(scene: GameScene) {
 function collectCorn(scene: GameScene, stats: LevelStats) {
   stats.corn += 1;
   if (stats.corn % CORN_PER_HEART === 0) {
-    scene.chicken.hearts = Math.min(scene.chicken.hearts + 1, CHICKEN.maxHearts);
+    scene.chicken.hearts = Math.min(scene.chicken.hearts + 1, scene.chicken.maxHearts);
   }
   playSound(scene, 'sfx-corn');
 }
@@ -66,9 +66,31 @@ function collectibleGroup(scene: GameScene, onCollect: () => void) {
   return group;
 }
 
+// With the Corn Magnet upgrade, nearby corn flies to the chicken.
+function attractCorn(scene: GameScene, corn: Phaser.Physics.Arcade.StaticGroup) {
+  if (!hasUpgrade('corn-magnet')) return;
+  const { magnetRadius, magnetSpeed } = UPGRADE_EFFECTS;
+  const pull = (_time: number, delta: number) => {
+    const { x, y } = scene.chicken;
+    const step = (magnetSpeed * delta) / 1000;
+    for (const item of corn.getChildren() as Phaser.Physics.Arcade.Sprite[]) {
+      const distance = Phaser.Math.Distance.Between(item.x, item.y, x, y);
+      if (distance === 0 || distance > magnetRadius) continue;
+      const share = Math.min(1, step / distance);
+      item.setPosition(item.x + (x - item.x) * share, item.y + (y - item.y) * share);
+      (item.body as Phaser.Physics.Arcade.StaticBody).updateFromGameObject();
+    }
+  };
+  scene.events.on(Phaser.Scenes.Events.UPDATE, pull);
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.UPDATE, pull));
+}
+
 registerLevelObject('corn', (scene, object) => {
   const state = levelState(scene);
-  state.corn ??= collectibleGroup(scene, () => collectCorn(scene, state.stats));
+  if (!state.corn) {
+    state.corn = collectibleGroup(scene, () => collectCorn(scene, state.stats));
+    attractCorn(scene, state.corn);
+  }
   const key = ensureTexture(scene, 'corn', 0xffd23f, 16, 16);
   state.corn.create(object.x ?? 0, (object.y ?? 0) - 8, key);
   state.stats.cornTotal += 1;

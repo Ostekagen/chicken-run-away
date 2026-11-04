@@ -5,7 +5,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 
 const SIZE = 32;
-const TILESETS = ['slaughterhouse', 'farm', 'road'];
+const TILESETS = ['slaughterhouse', 'farm', 'road', 'market', 'rooftops', 'harbour'];
 const MAIN_LEVELS = { 'level-1': 'slaughterhouse', 'level-2': 'farm', 'level-3': 'road' };
 const ENEMY_KINDS = ['worker', 'rat', 'dog', 'goose', 'fox', 'van'];
 const POWERUP_KINDS = ['egg-throw', 'flappy-wings', 'feather-armor', 'corn-rush', 'mighty-crow'];
@@ -339,7 +339,8 @@ function checkPath(name, level, fail, notes) {
   return found;
 }
 
-const levelNames = JSON.parse(readFileSync('src/levels.ts', 'utf8').match(/LEVELS = (\[.*\])/)[1].replaceAll("'", '"'));
+const levelNames = [...readFileSync('src/levels.ts', 'utf8').matchAll(/levels: (\[.*?\])/g)]
+  .flatMap((match) => JSON.parse(match[1].replaceAll("'", '"')));
 let failures = 0;
 
 for (const name of levelNames) {

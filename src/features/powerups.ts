@@ -5,6 +5,7 @@ import { playSound } from '../audio';
 import { CHICKEN, POWERUPS, PowerUpKind } from '../config';
 import { objectProperty, registerLevelObject } from '../levelObjects';
 import type { GameScene } from '../scenes/GameScene';
+import { eggCooldownMs } from '../upgrades';
 
 const PICK_UP_SIZE = 24;
 const EGG_SIZE = 16;
@@ -53,7 +54,7 @@ function stateOf(scene: GameScene) {
   let nextThrowAt = 0;
   const tryThrow = () => {
     if (scene.chicken.powerUp !== 'egg-throw' || scene.time.now < nextThrowAt) return;
-    nextThrowAt = scene.time.now + POWERUPS.eggCooldownMs;
+    nextThrowAt = scene.time.now + eggCooldownMs();
     throwEgg(scene, state.eggs);
   };
   const tryCrow = () => {

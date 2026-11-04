@@ -9,11 +9,12 @@ export class VictoryScene extends Phaser.Scene {
     super('victory');
   }
 
-  create() {
-    this.add.image(0, 0, 'bg-road').setOrigin(0);
+  create(data: { world?: string }) {
+    const ending = TEXT.endings[data.world ?? 'world-1'] ?? TEXT.endings['world-1'];
+    this.add.image(0, 0, this.textures.exists(ending.backdrop) ? ending.backdrop : 'bg-road').setOrigin(0);
     playMusic(this, 'music-farm');
-    addText(this, GAME_WIDTH / 2, 90, TEXT.victoryTitle, 40, '#ffe14d');
-    addText(this, GAME_WIDTH / 2, 136, TEXT.victoryBody, 14);
+    addText(this, GAME_WIDTH / 2, 90, ending.title, 40, '#ffe14d');
+    addText(this, GAME_WIDTH / 2, 136, ending.body, 14);
 
     const chicken = this.add.sprite(-40, 280, 'chicken').setScale(2).play('chicken-run');
     this.tweens.add({ targets: chicken, x: GAME_WIDTH + 40, duration: 5000, repeat: -1 });

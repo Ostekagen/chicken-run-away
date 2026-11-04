@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { CHICKEN, GAME_HEIGHT, GAME_WIDTH } from '../config';
+import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import { getLevelStats } from '../features/collectibles';
 import { TEXT } from '../text';
 import { clearTouch, touch } from '../touch';
@@ -25,7 +25,8 @@ export class HudScene extends Phaser.Scene {
   create() {
     clearTouch();
     this.drawHeart();
-    this.hearts = Array.from({ length: CHICKEN.maxHearts }, (_, i) =>
+    const maxHearts = (this.scene.get('game') as GameScene).chicken.maxHearts;
+    this.hearts = Array.from({ length: maxHearts }, (_, i) =>
       this.add.image(18 + i * (HEART_SIZE + 4), 18, 'heart'));
     this.powerUpIcon = this.add.image(102, 18, 'powerup-egg-throw').setVisible(false);
     this.add.image(138, 18, 'corn');

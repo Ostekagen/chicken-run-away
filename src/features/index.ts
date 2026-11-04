@@ -2,3 +2,5 @@
 import './powerups';
 import './enemies';
 import './collectibles';
+import './props';
+import './hats';

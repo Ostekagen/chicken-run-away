@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ensureTexture } from '../../art';
 import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
+import { crowStunMs } from '../../upgrades';
 import { clearCleavers, throwCleaver } from './cleavers';
 import { isSolidTile, levelOver, listen, perRun, showDizzy, showThrow, surfaceBelow } from './shared';
 
@@ -215,9 +216,9 @@ class ButcherChase {
 
   private stun() {
     if (!this.active) return;
-    this.stunnedUntil = this.scene.time.now + ENEMIES.stunMs;
+    this.stunnedUntil = this.scene.time.now + crowStunMs();
     this.stopDizzy?.();
-    this.stopDizzy = showDizzy(this.scene, this.butcher, ENEMIES.stunMs);
+    this.stopDizzy = showDizzy(this.scene, this.butcher, crowStunMs());
   }
 
   private caught() {

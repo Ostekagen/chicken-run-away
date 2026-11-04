@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { playMusic } from '../audio';
 import { GAME_WIDTH } from '../config';
 import { getSavedStars } from '../features/collectibles';
-import { LEVELS } from '../levels';
+import { LEVELS, WORLDS } from '../levels';
 import { TEXT } from '../text';
 import { addButton, addStars, addText } from '../ui';
 
@@ -23,8 +23,10 @@ export class MenuScene extends Phaser.Scene {
     playMusic(this, 'music-farm');
 
     const unlocked = (index: number) => index === 0 || getSavedStars(LEVELS[index - 1]) > 0;
-    LEVELS.forEach((level, index) => {
-      const y = FIRST_ROW_Y + index * ROW_HEIGHT;
+    // Only the first world is listed until the shop agent adds world tabs.
+    WORLDS[0].levels.forEach((level, row) => {
+      const index = LEVELS.indexOf(level);
+      const y = FIRST_ROW_Y + row * ROW_HEIGHT;
       const name = TEXT.levelNames[level];
       if (unlocked(index)) addButton(this, GAME_WIDTH / 2 - 60, y, name, () => this.startLevel(level));
       else addText(this, GAME_WIDTH / 2 - 60, y, name, 18, '#8a8ea3');

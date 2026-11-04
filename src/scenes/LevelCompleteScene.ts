@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { GAME_HEIGHT, GAME_WIDTH } from '../config';
 import type { LevelStats } from '../features/collectibles';
-import { LEVELS } from '../levels';
+import { nextLevelInWorld, worldOf } from '../levels';
 import { TEXT } from '../text';
 import { addButton, addStars, addText } from '../ui';
 
@@ -21,14 +21,14 @@ export class LevelCompleteScene extends Phaser.Scene {
       addText(this, GAME_WIDTH / 2, 238, `${TEXT.goldenEggs}: ${stats.eggs}/${stats.eggTotal}`, 14);
     }
 
-    const next = LEVELS[LEVELS.indexOf(level) + 1];
+    const next = nextLevelInWorld(level);
     const proceed = () => {
       this.scene.stop('hud');
       if (next) {
         this.scene.start('game', { level: next });
       } else {
         this.scene.stop('game');
-        this.scene.start('victory');
+        this.scene.start('victory', { world: worldOf(level).id });
       }
     };
     addButton(this, GAME_WIDTH / 2, 290, TEXT.continueGame, proceed);

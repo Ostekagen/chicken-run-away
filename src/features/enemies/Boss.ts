@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ensureTexture } from '../../art';
 import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
+import { crowStunMs } from '../../upgrades';
 import { clearCleavers, throwCleaver } from './cleavers';
 import { dropEggThrow, onEggHit } from './powerupAdapter';
 import { isLanding, levelOver, listen, playSound, showDizzy, showThrow } from './shared';
@@ -124,7 +125,7 @@ export class Boss extends Phaser.Physics.Arcade.Sprite {
   }
 
   private onCrow() {
-    if (this.mode === 'attacking' || this.mode === 'dazed') this.daze(ENEMIES.stunMs);
+    if (this.mode === 'attacking' || this.mode === 'dazed') this.daze(crowStunMs());
   }
 
   private touch() {

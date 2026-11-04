@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { playSound } from '../audio';
 import { CHICKEN, POWERUPS, PowerUpKind } from '../config';
+import { hasUpgrade, rushMs, UPGRADE_EFFECTS } from '../upgrades';
 
 const RUN_ANIMATION_MIN_SPEED = 10;
 
@@ -13,7 +14,8 @@ export interface ChickenInput {
 export class Chicken extends Phaser.Physics.Arcade.Sprite {
   declare body: Phaser.Physics.Arcade.Body;
 
-  hearts = CHICKEN.maxHearts;
+  readonly maxHearts = CHICKEN.maxHearts + (hasUpgrade('extra-heart') ? UPGRADE_EFFECTS.extraHearts : 0);
+  hearts = this.maxHearts;
   powerUp: PowerUpKind | null = null;
 
   private invulnerableUntil = 0;
@@ -48,7 +50,7 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
     if (kind) this.setTint(POWERUPS.colors[kind]);
     else this.clearTint();
     this.body.setMaxVelocityX(kind === 'corn-rush' ? POWERUPS.rushSpeed : CHICKEN.runSpeed);
-    if (kind === 'corn-rush') this.rushEndsAt = this.scene.time.now + POWERUPS.rushMs;
+    if (kind === 'corn-rush') this.rushEndsAt = this.scene.time.now + rushMs();
   }
 
   // Everything that hurts the chicken goes through here.
@@ -70,7 +72,7 @@ export class Chicken extends Phaser.Physics.Arcade.Sprite {
   respawn(x: number, y: number) {
     this.setPosition(x, y);
     this.body.reset(x, y);
-    this.hearts = CHICKEN.maxHearts;
+    this.hearts = this.maxHearts;
     this.invulnerableUntil = 0;
     this.isJumping = false;
     this.lastGroundedAt = -Infinity;

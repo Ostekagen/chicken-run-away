@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ensureTexture } from '../../art';
 import { ENEMIES } from '../../config';
 import type { GameScene } from '../../scenes/GameScene';
+import { crowStunMs } from '../../upgrades';
 import { isLanding, isStandable, levelOver, playSound, showDizzy } from './shared';
 
 export type EnemyKind = keyof typeof ENEMIES.kinds;
@@ -74,9 +75,9 @@ export class Enemy extends Phaser.Physics.Arcade.Sprite implements Foe {
   }
 
   stun(time: number) {
-    this.stunnedUntil = time + ENEMIES.stunMs;
+    this.stunnedUntil = time + crowStunMs();
     this.stopDizzy?.();
-    this.stopDizzy = showDizzy(this.scene, this, ENEMIES.stunMs);
+    this.stopDizzy = showDizzy(this.scene, this, crowStunMs());
   }
 
   reset(time: number) {
