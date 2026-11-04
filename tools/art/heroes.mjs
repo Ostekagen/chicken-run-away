@@ -328,3 +328,145 @@ export const butcherFrames = [
   butcher({ legs: 'run4', bob: 0, armLift: 2 }),
   butcherThrow(), // 4 throw
 ];
+
+// ------------------------------------------------- scooter butcher 64x56 (Update 1)
+// The same butcher, head, hat and striped shirt unchanged, riding a red delivery scooter with
+// a sausage box on the back. Frames: drive, drive, dazed.
+const SCOOTER_WHEEL = [
+  [
+    '...DDDDDD...',
+    '..DDDDDDDD..',
+    '.DDDAAAADDD.',
+    'DDDAAMMAADDD',
+    'DDAAMAAMAADD',
+    'DDAMAAAAMADD',
+    'DDAMAAAAMADD',
+    'DDAAMAAMAADD',
+    'DDDAAMMAADDD',
+    '.DDDAAAADDD.',
+    '..DDDDDDDD..',
+    '...DDDDDD...',
+  ],
+  [
+    '...DDDDDD...',
+    '..DDDDDDDD..',
+    '.DDDAMMADDD.',
+    'DDDAAMMAADDD',
+    'DDAAAAAAAADD',
+    'DMMAAAAAAMMD',
+    'DMMAAAAAAMMD',
+    'DDAAAAAAAADD',
+    'DDDAAMMAADDD',
+    '.DDDAMMADDD.',
+    '..DDDDDDDD..',
+    '...DDDDDD...',
+  ],
+];
+
+// A sausage link and cleaver on the delivery box, like the logo on the van.
+const BOX_LOGO = [
+  '.MMMMa...',
+  '.MMMMaNN.',
+  '.MMMMa...',
+  '.........',
+  'TTTTTTTT.',
+  'NNNNNNNNn',
+  '.nnnnnnn.',
+];
+
+const SCOOTER_ARM = [
+  'UUUUUUUUUUFFF',
+  'UUUUUUUUUUFFFF',
+  '.UUUUUUUUUFFFF',
+  '..........FFF.',
+];
+
+// Dizzy eyes and a wobbly mouth laid over the big head.
+const DAZED_FACE = [
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '.......KFK...KFK....',
+  '........K.....K.....',
+  '.......KFK...KFK....',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '....................',
+  '.........WKKKW......',
+];
+
+const STAR = ['..Y..', '.YQY.', 'YQQQY', '.YQY.', '..Y..'];
+
+function scooterButcher(step, dazed = false) {
+  const { R, r, W, w, s, D, a, A, M, Y, Q, n } = PALETTE;
+  const bob = step && !dazed ? 1 : 0;
+  const frame = new Canvas(64, 56);
+
+  // Delivery box on the rear rack, behind the rider.
+  const back = new Canvas(64, 56);
+  back.rect(1, 19 + bob, 15, 15, R);
+  back.rect(1, 19 + bob, 15, 3, W);
+  back.rect(1, 22 + bob, 15, 1, s);
+  back.rect(1, 32 + bob, 15, 2, r);
+  back.stamp(BOX_LOGO, 4, 24 + bob);
+  back.rect(0, 34 + bob, 18, 2, A);
+  frame.blit(back.outline());
+
+  // The butcher, built exactly like the running one.
+  const rider = new Canvas(64, 56);
+  rider.stamp(TORSO, 13, 25 + bob);
+  rider.stamp(CHEF_HAT, 19, bob);
+  rider.stamp(BIG_HEAD, 19, 8 + bob);
+  if (dazed) rider.stamp(DAZED_FACE, 19, 8 + bob);
+  rider.outline();
+  frame.blit(pinstripe(rider));
+
+  // Scooter body: rear cowl, seat, floorboard, leg shield and front fender.
+  const scooter = new Canvas(64, 56);
+  scooter.ellipse(17, 44 + bob, 15, 8, R);
+  scooter.ellipse(17, 42 + bob, 12, 4, 0xf0615a);
+  scooter.rect(2, 45 + bob, 31, 4, R);
+  scooter.rect(2, 47 + bob, 31, 2, r);
+  scooter.rect(22, 38 + bob, 6, 2, w); // side trim
+  scooter.rect(30, 45 + bob, 18, 3, a);
+  scooter.rect(30, 45 + bob, 18, 1, M);
+  for (let row = 0; row < 18; row++) {
+    const x = 45 - Math.floor(row / 4) + (row > 13 ? row - 13 : 0);
+    scooter.rect(x, 30 + row + bob, 6 - (row > 15 ? row - 15 : 0), 1, row < 2 ? 0xf0615a : R);
+  }
+  scooter.rect(50, 41 + bob, 12, 2, R);
+  scooter.rect(51, 40 + bob, 9, 1, 0xf0615a);
+  // Trousers and boot resting on the floorboard.
+  scooter.rect(33, 41 + bob, 10, 4, D);
+  scooter.rect(36, 43 + bob, 9, 2, n);
+  scooter.outline();
+  frame.blit(scooter);
+
+  // Handlebar, headlight and the arm gripping it.
+  const front = new Canvas(64, 56);
+  front.rect(50, 24 + bob, 2, 8, A);
+  front.rect(47, 23 + bob, 9, 2, D);
+  front.ellipse(55, 29 + bob, 2.5, 2.5, M);
+  front.ellipse(55.5, 29 + bob, 1.5, 1.5, Y);
+  front.set(56, 28 + bob, Q);
+  // Dazed, he lets go of the handlebar.
+  if (!dazed) front.stamp(SCOOTER_ARM, 36, 22 + bob);
+  frame.blit(pinstripe(front).outline());
+
+  // Wheels last so they sit in front of everything.
+  const wheels = new Canvas(64, 56);
+  wheels.stamp(SCOOTER_WHEEL[step % 2], 8, 44);
+  wheels.stamp(SCOOTER_WHEEL[step % 2], 50, 44);
+  frame.blit(wheels.outline());
+
+  if (!dazed && step === 1) frame.stamp(['.ss.', 'sWWs', 'sWWs', '.ss.'], 0, 46); // exhaust puff
+  if (dazed) {
+    frame.blit(new Canvas(64, 56).stamp(STAR, 17, 0).stamp(STAR, 42, 3).stamp(STAR, 30, 0).outline());
+  }
+  return frame;
+}
+
+export const scooterButcherFrames = [scooterButcher(0), scooterButcher(1), scooterButcher(0, true)];
