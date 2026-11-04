@@ -2,6 +2,8 @@ import Phaser from 'phaser';
 import { playMusic } from '../audio';
 import { TILE } from '../config';
 import { getLevelStats, saveStars } from '../features/collectibles';
+import { addVanChaser } from '../features/enemies';
+import { wearHat } from '../features/hats';
 import { createLevelObjects, findLevelObject, objectProperty } from '../levelObjects';
 import { isBossLevel } from '../levels';
 import { Chicken, ChickenInput } from '../objects/Chicken';
@@ -111,6 +113,8 @@ export class GameScene extends Phaser.Scene {
     }) as typeof this.keys;
 
     createLevelObjects(this, map);
+    addVanChaser(this);
+    wearHat(this);
     this.scene.launch('hud');
   }
 

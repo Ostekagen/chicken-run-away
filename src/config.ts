@@ -19,7 +19,8 @@ export const POWERUPS = {
   // Holding one of these, a hit costs the power-up instead of a heart.
   absorbsHit: ['egg-throw', 'flappy-wings', 'feather-armor'],
   eggSpeed: 340,
-  eggArcSpeed: 160,
+  // Kept low, so an egg stays at the height of short enemies such as crabs and rats.
+  eggArcSpeed: 60,
   eggGravity: 400,
   eggCooldownMs: 350,
   eggLifeMs: 2000,

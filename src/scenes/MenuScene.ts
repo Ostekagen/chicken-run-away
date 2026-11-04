@@ -2,12 +2,11 @@ import Phaser from 'phaser';
 import { playMusic } from '../audio';
 import { GAME_WIDTH } from '../config';
 import { getSavedStars } from '../features/collectibles';
-import { addHat, placeHat, watchHats } from '../features/hats';
+import { addHat, placeHat } from '../features/hats';
 import { LEVELS, WORLDS } from '../levels';
 import { getCorn } from '../save';
 import { TEXT } from '../text';
 import { addButton, addCornCount, addStars, addText } from '../ui';
-import type { GameScene } from './GameScene';
 
 const ROW_HEIGHT = 32;
 const FIRST_ROW_Y = 156;
@@ -29,7 +28,6 @@ export class MenuScene extends Phaser.Scene {
   }
 
   create() {
-    watchHats(this.scene.get('game') as GameScene);
     this.add.image(0, 0, 'bg-farm').setOrigin(0);
     addText(this, GAME_WIDTH / 2, 50, TEXT.title, 40, '#ffe14d');
     addText(this, GAME_WIDTH / 2, 86, TEXT.tagline, 16);

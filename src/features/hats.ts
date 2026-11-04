@@ -16,20 +16,14 @@ export const HAT_COLORS: Record<string, number> = {
   'hat-crown': 0xffd23f,
 };
 
-const watched = new WeakSet<GameScene>();
-
-// Call once with the game scene. Every later run of the level then shows the worn hat.
-export function watchHats(scene: GameScene) {
-  if (watched.has(scene)) return;
-  watched.add(scene);
-  scene.events.on(Phaser.Scenes.Events.CREATE, () => {
-    const hat = addHat(scene, scene.chicken);
-    if (!hat) return;
-    // After physics has moved the chicken, so the hat never lags a frame behind.
-    const follow = () => placeHat(hat, scene.chicken);
-    scene.events.on(Phaser.Scenes.Events.POST_UPDATE, follow);
-    scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.POST_UPDATE, follow));
-  });
+// GameScene calls this as each level starts, to show the worn hat on the chicken.
+export function wearHat(scene: GameScene) {
+  const hat = addHat(scene, scene.chicken);
+  if (!hat) return;
+  // After physics has moved the chicken, so the hat never lags a frame behind.
+  const follow = () => placeHat(hat, scene.chicken);
+  scene.events.on(Phaser.Scenes.Events.POST_UPDATE, follow);
+  scene.events.once(Phaser.Scenes.Events.SHUTDOWN, () => scene.events.off(Phaser.Scenes.Events.POST_UPDATE, follow));
 }
 
 // Puts the worn hat on a sprite, or returns null when no hat is worn.
